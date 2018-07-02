@@ -1,0 +1,3 @@
+[submodule "source/thirdparty/chif"]
+	path = source/thirdparty/chif
+	url = https://github.com/alfret/chif
