@@ -6,6 +6,8 @@
 #include <iostream>
 #include <thread>
 #include <memory>
+#include <net/connection/connection.hpp>
+#include <net/header/header.hpp>
 
 using namespace dnet;
 
@@ -13,17 +15,20 @@ using namespace dnet;
 // Class Definition
 // ============================================================ //
 
-void serve(std::unique_ptr<Tcp>&& client)
+void serve(std::unique_ptr<Connection<Tcp, Header>>&& client)
 {
   try {
     bool run = true;
-    constexpr u32 buf_size = 1024;
-    u8 buf[buf_size];
+    payload_container payload;
     while (run) {
-      auto bytes = client->read(buf, buf_size);
+      client->read(payload);
       static_assert(sizeof(u8) == sizeof(char));
-      std::cout << "[serve: " << std::string(reinterpret_cast<char*>(buf), bytes) << "]\n";
-      bytes = client->write(buf, bytes);
+      std::cout << "[serve:" << payload.size() << ":";
+      for (auto c : payload)
+        std::cout << static_cast<char>(c);
+      std::cout << "]\n";
+
+      client->write(payload);
     }
   }
   catch (const dnet_exception& e) {
@@ -36,7 +41,7 @@ int main()
   startup();
 
   try {
-    Tcp server{};
+    Connection<Tcp, Header> server{};
     server.start_server(1337);
 
     bool run = true;
@@ -47,7 +52,7 @@ int main()
                 << client.get_remote_ip() << ":"
                 << client.get_remote_port() << "]\n";
 
-      auto cli_ptr = std::make_unique<Tcp>(std::move(client));
+      auto cli_ptr = std::make_unique<Connection<Tcp, Header>>(std::move(client));
       std::thread t(serve, std::move(cli_ptr));
       t.detach();
     }

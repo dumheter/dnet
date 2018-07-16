@@ -1,3 +1,9 @@
 [submodule "source/thirdparty/chif"]
 	path = source/thirdparty/chif
 	url = https://github.com/alfret/chif
+[submodule "source/thirdparty/json"]
+	path = source/thirdparty/json
+	url = https://github.com/nlohmann/json
+[submodule "source/thirdparty/fmt"]
+	path = source/thirdparty/fmt
+	url = https://github.com/fmtlib/fmt
