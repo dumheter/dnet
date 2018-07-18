@@ -5,13 +5,13 @@ Have you been looking for an easy to use networking library for c++17? You've co
 basic server:
 ```cpp
 // todo
-dnet::Connection<dnet::Tcp, dnet::Header> server;
+dnet::Connection<dnet::Tcp, dnet::Packet_header> server;
 ```
 
 ## Built with JSON in mind
 dnet is perfect to use with nlohmann's json library:
  ```c++
- dnet::Connection<dnet::Tcp, dnet::Header> con;
+ dnet::Connection<dnet::Tcp, dnet::Packet_header> con;
  fmt::printf("connecting...\n");
  con.connect("127.0.0.1", 1337);
  

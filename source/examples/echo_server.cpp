@@ -2,65 +2,83 @@
 // Headers
 // ============================================================ //
 
-#include <net/transport/tcp.hpp>
 #include <iostream>
 #include <thread>
 #include <memory>
+#include <fmt/format.h>
+#include <net/transport/tcp.hpp>
 #include <net/connection/connection.hpp>
-#include <net/header/header.hpp>
+#include <net/header/packet_header.hpp>
+#include <net/util/util.hpp>
 
 using namespace dnet;
+
+// ============================================================ //
+// Debug
+#define DNET_DEBUG
+
+#ifdef DNET_DEBUG
+#  define dprint(...) fmt::print(__VA_ARGS__)
+#else
+#  define dprintln(...)
+#  define dprint(...)
+#endif
 
 // ============================================================ //
 // Class Definition
 // ============================================================ //
 
-void serve(std::unique_ptr<Connection<Tcp, Header>>&& client)
+void serve(std::unique_ptr<Connection<Tcp, Packet_header>>&& client)
 {
+  const auto port = client->get_remote_port();
+
   try {
-    bool run = true;
     payload_container payload;
+    bool run = true;
     while (run) {
       client->read(payload);
       static_assert(sizeof(u8) == sizeof(char));
-      std::cout << "[serve:" << payload.size() << ":";
+      dprint("[serve:{0}] [msg:{1}:", port, payload.size());
       for (auto c : payload)
-        std::cout << static_cast<char>(c);
-      std::cout << "]\n";
+        dprint("{0}", static_cast<char>(c));
+      dprint("]\n");
 
       client->write(payload);
     }
   }
   catch (const dnet_exception& e) {
-    std::cout << "[serve: ex: " << e.what() << "]\n";
+    dprint("[serve:{0}] connection closed [ex:{1}]\n", port, e.what());
   }
 }
 
-int main()
+void run_server(u16 port)
 {
-  startup();
-
   try {
-    Connection<Tcp, Header> server{};
-    server.start_server(1337);
+    Connection<Tcp, Packet_header> server{};
+    server.start_server(port);
 
     bool run = true;
     while (run) {
-      std::cout << "[server: waiting for client]\n";
+      dprint("[server] waiting for client\n");
       auto client = server.accept();
-      std::cout << "[server: new client] ["
-                << client.get_remote_ip() << ":"
-                << client.get_remote_port() << "]\n";
+      dprint("[server] new client from {0}:{1}\n", client.get_remote_ip(), client.get_remote_port());
 
-      auto cli_ptr = std::make_unique<Connection<Tcp, Header>>(std::move(client));
+      auto cli_ptr = std::make_unique<Connection<Tcp, Packet_header>>(std::move(client));
       std::thread t(serve, std::move(cli_ptr));
       t.detach();
     }
   }
   catch (const dnet_exception& e) {
-    std::cout << "[ex: " << e.what() << "]\n";
+    dprint("[server] [ex:{0}]\n", e.what());
   }
+}
 
+// ============================================================ //
+
+int main()
+{
+  startup();
+  run_server(1337);
   shutdown();
 
   return 0;

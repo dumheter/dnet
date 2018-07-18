@@ -9,6 +9,7 @@
 #include <net/payload/payload.hpp>
 #include <net/util/dnet_exception.hpp>
 #include <string>
+#include <net/header/packet_header.hpp>
 
 // ====================================================================== //
 // Exception Class
@@ -39,7 +40,8 @@ namespace dnet
 namespace dnet
 {
 
-  template <typename TTransport, typename THeader>
+  template <typename TTransport, typename THeader = Packet_header,
+    u64 MAX_PAYLOAD_SIZE = std::numeric_limits<decltype(THeader::Header_meta::size)>::max()>
   class Connection
   {
 
@@ -53,11 +55,11 @@ namespace dnet
     explicit Connection(TTransport&& transport);
     Connection(TTransport&& transport, THeader&& packet);
 
-    Connection(const Connection<TTransport, THeader>& other) = delete;
-    Connection& operator=(const Connection<TTransport, THeader>& other) = delete;
+    Connection(const Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>& other) = delete;
+    Connection& operator=(const Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>& other) = delete;
 
-    Connection(Connection<TTransport, THeader>&& other) noexcept;
-    Connection& operator=(Connection<TTransport, THeader>&& other) noexcept;
+    Connection(Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>&& other) noexcept;
+    Connection& operator=(Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>&& other) noexcept;
 
     // ====================================================================== //
     // Client methods
@@ -82,12 +84,6 @@ namespace dnet
     Connection accept();
 
     // ====================================================================== //
-    // util methods
-    // ====================================================================== //
-
-
-
-    // ====================================================================== //
     // Private members
     // ====================================================================== //
 
@@ -97,7 +93,7 @@ namespace dnet
     THeader m_header;
 
     static constexpr u64 MIN_PAYLOAD_SIZE = 4048;
-    static constexpr u64 MAX_PAYLOAD_SIZE = std::numeric_limits<decltype(m_header.size)>::max();
+    //static constexpr u64 MAX_PAYLOAD_SIZE =
 
   };
 
@@ -105,36 +101,36 @@ namespace dnet
   // template definition
   // ====================================================================== //
 
-  template<typename TTransport, typename TPacket>
-  Connection<TTransport, TPacket>::Connection()
+  template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
+  Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::Connection()
   : m_transport(), m_header()
   {
 
   }
 
-  template<typename TTransport, typename TPacket>
-  Connection<TTransport, TPacket>::Connection(TTransport&& transport)
+  template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
+  Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::Connection(TTransport&& transport)
     : m_transport(std::move(transport)), m_header()
   {
 
   }
 
-  template<typename TTransport, typename TPacket>
-  Connection<TTransport, TPacket>::Connection(TTransport&& transport, TPacket&& packet)
+  template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
+  Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::Connection(TTransport&& transport, TPacket&& packet)
   : m_transport(transport), m_header(packet)
   {
 
   }
 
-  template<typename TTransport, typename TPacket>
-  Connection<TTransport, TPacket>::Connection(Connection<TTransport, TPacket>&& other) noexcept
+  template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
+  Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::Connection(Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>&& other) noexcept
   {
     m_transport = std::move(other.m_transport);
     m_header = std::move(other.m_header);
   }
 
-  template<typename TTransport, typename TPacket>
-  Connection<TTransport, TPacket>& Connection<TTransport, TPacket>::operator=(Connection<TTransport, TPacket>&& other) noexcept
+  template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
+  Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>& Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::operator=(Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>&& other) noexcept
   {
     if (&other != this) {
       m_transport = std::move(other.m_transport);
@@ -144,14 +140,14 @@ namespace dnet
     return *this;
   }
 
-  template<typename TTransport, typename TPacket>
-  void Connection<TTransport, TPacket>::connect(const std::string& ip, u16 port)
+  template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
+  void Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::connect(const std::string& ip, u16 port)
   {
     m_transport.connect(ip, port);
   }
 
-  template<typename TTransport, typename THeader>
-  void Connection<TTransport, THeader>::read(payload_container& payload)
+  template<typename TTransport, typename THeader, u64 MAX_PAYLOAD_SIZE>
+  void Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>::read(payload_container& payload)
   {
     // todo make it possible to break out of loops if bad header
 
@@ -170,7 +166,7 @@ namespace dnet
       bytes = 0;
       while (bytes < m_header.get_payload_size()) {
         // todo timeout read in case bad into in header
-        bytes += m_transport.read(&payload[bytes], payload.capacity() - bytes);
+        bytes += m_transport.read(&payload[bytes], m_header.get_payload_size() - bytes);
       }
       payload.resize(bytes);
     }
@@ -179,8 +175,8 @@ namespace dnet
     }
   }
 
-  template<typename TTransport, typename THeader>
-  void Connection<TTransport, THeader>::write(payload_container& payload)
+  template<typename TTransport, typename THeader, u64 MAX_PAYLOAD_SIZE>
+  void Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>::write(payload_container& payload)
   {
     // todo make it possible to break out of loops if bad header
 
@@ -197,16 +193,16 @@ namespace dnet
     }
   }
 
-  template<typename TTransport, typename TPacket>
-  void Connection<TTransport, TPacket>::start_server(u16 port)
+  template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
+  void Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::start_server(u16 port)
   {
     m_transport.start_server(port);
   }
 
-  template<typename TTransport, typename TPacket>
-  Connection<TTransport, TPacket> Connection<TTransport, TPacket>::accept()
+  template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
+  Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE> Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::accept()
   {
-    Connection<TTransport, TPacket> client{m_transport.accept()};
+    Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE> client{m_transport.accept()};
     return client;
   }
 

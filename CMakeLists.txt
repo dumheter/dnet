@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(net)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb")
 
 include_directories(
   source
@@ -26,6 +26,8 @@ set(COMMON_SOURCE
   source/thirdparty/fmt/src/format.cc
   source/thirdparty/fmt/src/posix.cc
 
+  source/thirdparty/json/single_include/nlohmann/json.hpp
+
   source/net/socket/socket.cpp
   source/net/socket/socket.hpp
 
@@ -41,13 +43,13 @@ set(COMMON_SOURCE
 
   source/net/connection/connection.hpp
   source/net/header/header_interface.hpp
-  source/net/header/header.cpp
-  source/net/header/header.hpp
+  source/net/header/packet_header.cpp
+  source/net/header/packet_header.hpp
 
-  source/net/payload/payload.hpp)
+  source/net/payload/payload.hpp source/net/util/util.hpp)
 
 add_executable(basic source/examples/basic.cpp ${COMMON_SOURCE})
-add_executable(json source/examples/json.cpp source/thirdparty/json/single_include/nlohmann/json.hpp ${COMMON_SOURCE})
+add_executable(json source/examples/json.cpp ${COMMON_SOURCE})
 add_executable(echo_server source/examples/echo_server.cpp ${COMMON_SOURCE})
 add_executable(echo_client source/examples/echo_client.cpp ${COMMON_SOURCE})
 add_executable(perf_fn_call source/examples/perf_fn_call.cpp)

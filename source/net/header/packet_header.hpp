@@ -15,20 +15,20 @@
 namespace dnet
 {
 
-  class Header : public Header_interface
+  class Packet_header : public Header_interface
   {
 
   public:
 
-    Header();
+    Packet_header();
 
-    Header(const Header& other);
-    Header& operator=(const Header& other);
+    Packet_header(const Packet_header& other);
+    Packet_header& operator=(const Packet_header& other);
 
-    Header(Header&& other) noexcept;
-    Header& operator=(Header&& other) noexcept;
+    Packet_header(Packet_header&& other) noexcept;
+    Packet_header& operator=(Packet_header&& other) noexcept;
 
-    ~Header();
+    ~Packet_header();
 
     size_t get_payload_size() const override;
 
@@ -48,13 +48,15 @@ namespace dnet
 
     void set_type(Packet_type type) override;
 
-  private:
+  public:
 
     struct Header_meta
     {
       Packet_type type;
       u16 size;
     };
+
+  private:
 
     u8* m_header;
 

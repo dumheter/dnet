@@ -5,7 +5,7 @@
 #include <net/transport/tcp.hpp>
 #include <iostream>
 #include <thread>
-#include <net/header/header.hpp>
+#include <net/header/packet_header.hpp>
 #include <net/connection/connection.hpp>
 
 using namespace dnet;
@@ -22,7 +22,7 @@ int main()
     std::string msg("hey there from the client");
     payload_container payload{msg.begin(), msg.end()};
 
-    Connection<Tcp, Header> client{};
+    Connection<Tcp, Packet_header> client{};
     client.connect("127.0.0.1", 1337);
     client.write(payload);
     std::cout << "[wrote: " << msg << "]\n";
