@@ -144,10 +144,34 @@ namespace dnet
     return can;
   }
 
+  std::string Socket::get_ip()
+  {
+    char ip[CHIF_NET_IPVX_STRING_LENGTH];
+    auto res = chif_net_get_ip(m_socket, ip, CHIF_NET_IPVX_STRING_LENGTH);
+
+    if (res != CHIF_NET_RESULT_SUCCESS) {
+      throw socket_exception("failed to get ip");
+    }
+
+    return std::string(ip);
+  }
+
+  u16 Socket::get_port()
+  {
+    u16 port;
+    auto res = chif_net_get_port(m_socket, &port);
+
+    if (res != CHIF_NET_RESULT_SUCCESS) {
+      throw socket_exception("failed to get port");
+    }
+
+    return port;
+  }
+
   std::string Socket::get_remote_ip()
   {
     char ip[CHIF_NET_IPVX_STRING_LENGTH];
-    auto res = chif_net_get_peer_name(m_socket, ip, CHIF_NET_IPVX_STRING_LENGTH);
+    auto res = chif_net_get_peer_ip(m_socket, ip, CHIF_NET_IPVX_STRING_LENGTH);
 
     if (res != CHIF_NET_RESULT_SUCCESS) {
       throw socket_exception("failed to get remote ip");
@@ -185,4 +209,5 @@ namespace dnet
       throw socket_exception("failed to set blocking");
     }
   }
+
 }

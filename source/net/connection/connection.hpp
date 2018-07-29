@@ -71,6 +71,10 @@ namespace dnet
 
     void write(payload_container& payload);
 
+    inline std::string get_ip() { return m_transport.get_ip(); };
+
+    inline u16 get_port() { return m_transport.get_port(); };
+
     inline std::string get_remote_ip() { return m_transport.get_remote_ip(); }
 
     inline u16 get_remote_port() { return m_transport.get_remote_port(); }

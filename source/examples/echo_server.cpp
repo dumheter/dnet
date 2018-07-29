@@ -56,6 +56,9 @@ void run_server(u16 port)
   try {
     Connection<Tcp, Packet_header> server{};
     server.start_server(port);
+    auto portttt = server.get_port();
+    auto ipppp = server.get_ip();
+    dprint("[server] init server @ {}:{}\n", server.get_ip(), server.get_port());
 
     bool run = true;
     while (run) {

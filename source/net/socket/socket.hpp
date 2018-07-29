@@ -110,6 +110,16 @@ namespace dnet
     /*
      * @throw socket_exception
      */
+    std::string get_ip();
+
+    /*
+     * @throw socket_exception
+     */
+    u16 get_port();
+
+    /*
+     * @throw socket_exception
+     */
     std::string get_remote_ip();
 
     /*
