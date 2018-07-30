@@ -9,24 +9,11 @@ include_directories(
   source/thirdparty
   source/thirdparty/json/single_include
   source/thirdparty/fmt/include
+  source/thirdparty/argparse
 )
 
 set(COMMON_SOURCE
   source/thirdparty/chif/chif_net.h
-
-  source/thirdparty/fmt/include/fmt/core.h
-  source/thirdparty/fmt/include/fmt/folly.h
-  source/thirdparty/fmt/include/fmt/format.h
-  source/thirdparty/fmt/include/fmt/format-inl.h
-  source/thirdparty/fmt/include/fmt/ostream.h
-  source/thirdparty/fmt/include/fmt/posix.h
-  source/thirdparty/fmt/include/fmt/printf.h
-  source/thirdparty/fmt/include/fmt/ranges.h
-  source/thirdparty/fmt/include/fmt/time.h
-  source/thirdparty/fmt/src/format.cc
-  source/thirdparty/fmt/src/posix.cc
-
-  source/thirdparty/json/single_include/nlohmann/json.hpp
 
   source/net/socket/socket.cpp
   source/net/socket/socket.hpp
@@ -46,14 +33,36 @@ set(COMMON_SOURCE
   source/net/header/packet_header.cpp
   source/net/header/packet_header.hpp
 
-  source/net/payload/payload.hpp source/net/util/util.hpp)
+  source/net/payload/payload.hpp
+  source/net/util/util.hpp
 
-add_executable(basic source/examples/basic.cpp ${COMMON_SOURCE})
-add_executable(json source/examples/json.cpp ${COMMON_SOURCE})
-add_executable(echo_server source/examples/echo_server.cpp ${COMMON_SOURCE})
-add_executable(echo_client source/examples/echo_client.cpp ${COMMON_SOURCE})
-add_executable(perf_fn_call source/examples/perf_fn_call.cpp)
-add_executable(perf source/examples/perf.cpp ${COMMON_SOURCE})
+  )
+
+set(EXAMPLE_SOURCE
+  source/thirdparty/argparse/argparse.c
+  source/thirdparty/argparse/argparse.h
+
+  source/thirdparty/fmt/include/fmt/core.h
+  source/thirdparty/fmt/include/fmt/folly.h
+  source/thirdparty/fmt/include/fmt/format.h
+  source/thirdparty/fmt/include/fmt/format-inl.h
+  source/thirdparty/fmt/include/fmt/ostream.h
+  source/thirdparty/fmt/include/fmt/posix.h
+  source/thirdparty/fmt/include/fmt/printf.h
+  source/thirdparty/fmt/include/fmt/ranges.h
+  source/thirdparty/fmt/include/fmt/time.h
+  source/thirdparty/fmt/src/format.cc
+  source/thirdparty/fmt/src/posix.cc
+
+  source/thirdparty/json/single_include/nlohmann/json.hpp
+  )
+
+add_executable(basic source/examples/basic.cpp ${COMMON_SOURCE} ${EXAMPLE_SOURCE})
+add_executable(json source/examples/json.cpp ${COMMON_SOURCE} ${EXAMPLE_SOURCE})
+add_executable(echo_server source/examples/echo_server.cpp ${COMMON_SOURCE} ${EXAMPLE_SOURCE})
+add_executable(echo_client source/examples/echo_client.cpp ${COMMON_SOURCE} ${EXAMPLE_SOURCE})
+add_executable(perf_fn_call source/examples/perf_fn_call.cpp ${EXAMPLE_SOURCE})
+add_executable(perf source/examples/perf.cpp ${COMMON_SOURCE} ${EXAMPLE_SOURCE})
 
 target_link_libraries(echo_server pthread)
 target_link_libraries(echo_client pthread)

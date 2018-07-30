@@ -2,39 +2,77 @@
 // Headers
 // ============================================================ //
 
-#include <net/transport/tcp.hpp>
 #include <iostream>
 #include <thread>
+#include <fmt/format.h>
+#include <argparse.h>
+#include <net/transport/tcp.hpp>
 #include <net/header/packet_header.hpp>
 #include <net/connection/connection.hpp>
+#include <net/util/util.hpp>
 
 using namespace dnet;
 
 // ============================================================ //
-// Class Definition
+// Debug
+#define DNET_DEBUG
+
+#ifdef DNET_DEBUG
+#  define dprint(...) \
+fmt::print("[client] [{}:{}] ", __func__, __LINE__); \
+fmt::print(__VA_ARGS__)
+#else
+#  define dprintln(...)
+#  define dprint(...)
+#endif
+
 // ============================================================ //
 
-int main()
+void echo_client(u16 port, const char* ip)
 {
-  static_assert(sizeof(u8) == sizeof(char));
-
   try {
+    dprint("connecting to {}:{}\n", ip, port);
     std::string msg("hey there from the client");
     payload_container payload{msg.begin(), msg.end()};
 
-    Connection<Tcp, Packet_header> client{};
-    client.connect("127.0.0.1", 1337);
+    Connection<Tcp> client{};
+    client.connect(std::string(ip), port);
     client.write(payload);
-    std::cout << "[wrote: " << msg << "]\n";
+    dprint("[{}] [wrote:{}]\n", __func__, msg);
 
     payload.clear();
     client.read(payload);
-    std::cout << "[read: " << std::string(payload.begin(), payload.end())
-              << "]\n";
+    dprint("[read:{}]\n", std::string(payload.begin(), payload.end()));
   }
   catch (const dnet_exception& e) {
-    std::cout << "[ex: " << e.what() << "]\n";
+    dprint("[ex:{}]\n", e.what());
   }
+}
 
+// ============================================================ //
+
+int main(int argc, const char** argv)
+{
+  int port = 0;
+  const char* ip = NULL;
+  struct argparse_option options[] = {
+    OPT_HELP(),
+    OPT_GROUP("Settings"),
+    OPT_INTEGER('p', "port", &port, "port"),
+    OPT_STRING('i', "ip", &ip, "ip address"),
+    OPT_END(),
+  };
+
+  struct argparse argparse;
+  argparse_init(&argparse, options, NULL, 0);
+  argparse_describe(&argparse, NULL, NULL);
+  argc = argparse_parse(&argparse, argc, argv);
+
+  if (!ip)
+    ip = "127.0.0.1";
+
+  startup();
+  echo_client(port, ip);
+  shutdown();
   return 0;
 }

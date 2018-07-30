@@ -7,3 +7,6 @@
 [submodule "source/thirdparty/fmt"]
 	path = source/thirdparty/fmt
 	url = https://github.com/fmtlib/fmt
+[submodule "source/thirdparty/argparse"]
+	path = source/thirdparty/argparse
+	url = https://github.com/dumheter/argparse
