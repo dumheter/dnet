@@ -113,6 +113,12 @@ namespace dnet
       throw socket_exception("failed to create chif_net address");
     }
 
+    if (m_socket == CHIF_NET_INVALID_SOCKET) {
+      res = chif_net_open_socket(&m_socket, m_proto, m_fam);
+      if (res != CHIF_NET_RESULT_SUCCESS) {
+        throw socket_exception("failed to open socket when attempting to connect");
+      }
+    }
     res = chif_net_connect(m_socket, addr);
 
     if (res != CHIF_NET_RESULT_SUCCESS) {
