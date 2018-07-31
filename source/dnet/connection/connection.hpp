@@ -5,11 +5,11 @@
 // Headers
 // ============================================================ //
 
-#include <net/util/types.hpp>
-#include <net/payload/payload.hpp>
-#include <net/util/dnet_exception.hpp>
 #include <string>
-#include <net/header/packet_header.hpp>
+#include <dnet/util/types.hpp>
+#include <dnet/payload/payload.hpp>
+#include <dnet/util/dnet_exception.hpp>
+#include <dnet/header/packet_header.hpp>
 
 // ====================================================================== //
 // Exception Class

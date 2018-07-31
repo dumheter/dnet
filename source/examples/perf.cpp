@@ -2,14 +2,14 @@
 // Headers
 // ============================================================ //
 
+#include <thread>
 #include <benchmark/benchmark.h>
 #include <thirdparty/json/single_include/nlohmann/json.hpp>
-#include <net/util/types.hpp>
 #include <fmt/format.h>
-#include <net/connection/connection.hpp>
-#include <net/transport/tcp.hpp>
-#include <net/header/packet_header.hpp>
-#include <thread>
+#include <dnet/util/types.hpp>
+#include <dnet/connection/connection.hpp>
+#include <dnet/transport/tcp.hpp>
+#include <dnet/header/packet_header.hpp>
 
 using namespace dnet;
 

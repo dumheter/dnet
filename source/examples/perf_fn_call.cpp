@@ -6,10 +6,10 @@
 // Headers
 // ============================================================ //
 
-#include <benchmark/benchmark.h>
 #include <chrono>
 #include <iostream>
 #include <functional>
+#include <benchmark/benchmark.h>
 
 // ============================================================ //
 

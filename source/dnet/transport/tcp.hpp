@@ -5,8 +5,8 @@
 // Headers
 // ============================================================ //
 
-#include <net/util/types.hpp>
-#include "net/socket/socket.hpp"
+#include <dnet/util/types.hpp>
+#include <dnet/socket/socket.hpp>
 
 // ============================================================ //
 // Class Declaration

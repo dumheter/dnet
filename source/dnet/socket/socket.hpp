@@ -7,8 +7,8 @@
 
 #define CHIF_NET_IMPLEMENTATION
 
-#include <net/util/dnet_exception.hpp>
-#include <net/util/types.hpp>
+#include <dnet/util/dnet_exception.hpp>
+#include <dnet/util/types.hpp>
 #include "chif/chif_net.h"
 
 // ====================================================================== //

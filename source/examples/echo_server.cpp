@@ -7,10 +7,10 @@
 #include <memory>
 #include <fmt/format.h>
 #include <argparse.h>
-#include <net/transport/tcp.hpp>
-#include <net/connection/connection.hpp>
-#include <net/header/packet_header.hpp>
-#include <net/util/util.hpp>
+#include <dnet/transport/tcp.hpp>
+#include <dnet/connection/connection.hpp>
+#include <dnet/header/packet_header.hpp>
+#include <dnet/util/util.hpp>
 
 using namespace dnet;
 

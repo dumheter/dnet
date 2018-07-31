@@ -2,9 +2,9 @@
 // Headers
 // ============================================================ //
 
-#include <net/transport/tcp.hpp>
-#include <net/header/packet_header.hpp>
-#include <net/connection/connection.hpp>
+#include <dnet/transport/tcp.hpp>
+#include <dnet/header/packet_header.hpp>
+#include <dnet/connection/connection.hpp>
 #include <nlohmann/json.hpp>
 #include <fmt/format.h>
 #include <fmt/printf.h>

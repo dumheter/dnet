@@ -15,26 +15,22 @@ include_directories(
 set(COMMON_SOURCE
   source/thirdparty/chif/chif_net.h
 
-  source/net/socket/socket.cpp
-  source/net/socket/socket.hpp
-
-  source/net/transport/tcp.cpp
-  source/net/transport/tcp.hpp
-  source/net/transport/udp.cpp
-  source/net/transport/udp.hpp
-
-  source/net/util/dnet_exception.hpp
-  source/net/util/macros.hpp
-  source/net/util/types.hpp
-  source/net/util/platform.hpp
-
-  source/net/connection/connection.hpp
-  source/net/header/header_interface.hpp
-  source/net/header/packet_header.cpp
-  source/net/header/packet_header.hpp
-
-  source/net/payload/payload.hpp
-  source/net/util/util.hpp
+  source/dnet/socket/socket.cpp
+  source/dnet/socket/socket.hpp
+  source/dnet/transport/tcp.cpp
+  source/dnet/transport/tcp.hpp
+  source/dnet/transport/udp.cpp
+  source/dnet/transport/udp.hpp
+  source/dnet/util/dnet_exception.hpp
+  source/dnet/util/macros.hpp
+  source/dnet/util/types.hpp
+  source/dnet/util/platform.hpp
+  source/dnet/connection/connection.hpp
+  source/dnet/header/header_interface.hpp
+  source/dnet/header/packet_header.cpp
+  source/dnet/header/packet_header.hpp
+  source/dnet/payload/payload.hpp
+  source/dnet/util/util.hpp
 
   )
 
