@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 project(dnet)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb")
 
 include_directories(
   source
@@ -59,6 +58,8 @@ add_executable(echo_server source/examples/echo_server.cpp ${COMMON_SOURCE} ${EX
 add_executable(echo_client source/examples/echo_client.cpp ${COMMON_SOURCE} ${EXAMPLE_SOURCE})
 add_executable(perf_fn_call source/examples/perf_fn_call.cpp ${EXAMPLE_SOURCE})
 add_executable(perf source/examples/perf.cpp ${COMMON_SOURCE} ${EXAMPLE_SOURCE})
+
+add_library(dnet ${COMMON_SOURCE})
 
 target_link_libraries(echo_server pthread)
 target_link_libraries(echo_client pthread)

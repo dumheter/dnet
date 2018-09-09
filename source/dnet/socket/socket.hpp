@@ -9,7 +9,7 @@
 
 #include <dnet/util/dnet_exception.hpp>
 #include <dnet/util/types.hpp>
-#include "chif/chif_net.h"
+#include <thirdparty/chif/chif_net.h>
 
 // ====================================================================== //
 // Exception Class

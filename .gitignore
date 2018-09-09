@@ -33,7 +33,7 @@
 
 # dirs
 .idea/
-cmake-build-debug/
+build/
 
 # windows cmake generated files
 .vs/

@@ -10,6 +10,7 @@
 #include <dnet/payload/payload.hpp>
 #include <dnet/util/dnet_exception.hpp>
 #include <dnet/header/packet_header.hpp>
+#include <dnet/transport/tcp.hpp>
 
 // ====================================================================== //
 // Exception Class
@@ -40,7 +41,7 @@ namespace dnet
 namespace dnet
 {
 
-  template <typename TTransport, typename THeader = Packet_header,
+  template <typename TTransport = Tcp, typename THeader = Packet_header,
     u64 MAX_PAYLOAD_SIZE = std::numeric_limits<decltype(THeader::Header_meta::size)>::max()>
   class Connection
   {
