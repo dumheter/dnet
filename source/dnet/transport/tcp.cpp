@@ -51,5 +51,9 @@ namespace dnet
     m_socket.connect(ip, port);
   }
 
+  void Tcp::disconnect()
+  {
+    m_socket.close();
+  }
 
 }

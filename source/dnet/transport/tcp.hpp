@@ -49,6 +49,8 @@ namespace dnet
      */
     void connect(const std::string& ip, u16 port);
 
+    void disconnect();
+
     inline ssize_t read(u8* buf, size_t len) { return m_socket.read(buf, len); };
 
     inline ssize_t write(u8* buf, size_t len) { return m_socket.write(buf, len); };

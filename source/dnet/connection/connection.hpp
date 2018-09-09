@@ -68,9 +68,23 @@ namespace dnet
 
     void connect(const std::string& ip, u16 port);
 
+    void disconnect();
+
     void read(payload_container& payload);
 
     void write(payload_container& payload);
+
+    // ====================================================================== //
+    // Server methods
+    // ====================================================================== //
+
+    void start_server(u16 port);
+
+    Connection accept();
+
+    // ====================================================================== //
+    // General methods
+    // ====================================================================== //
 
     inline std::string get_ip() { return m_transport.get_ip(); };
 
@@ -80,13 +94,7 @@ namespace dnet
 
     inline u16 get_remote_port() { return m_transport.get_remote_port(); }
 
-    // ====================================================================== //
-    // Server methods
-    // ====================================================================== //
 
-    void start_server(u16 port);
-
-    Connection accept();
 
     // ====================================================================== //
     // Private members
@@ -149,6 +157,12 @@ namespace dnet
   void Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::connect(const std::string& ip, u16 port)
   {
     m_transport.connect(ip, port);
+  }
+
+  template<typename TTransport, typename THeader, u64 MAX_PAYLOAD_SIZE>
+  void Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>::disconnect()
+  {
+    m_transport.disconnect();
   }
 
   template<typename TTransport, typename THeader, u64 MAX_PAYLOAD_SIZE>
