@@ -6,6 +6,7 @@
 // ============================================================ //
 
 #include <string>
+#include <limits>
 #include <dnet/util/types.hpp>
 #include <dnet/payload/payload.hpp>
 #include <dnet/util/dnet_exception.hpp>
