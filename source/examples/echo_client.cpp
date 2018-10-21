@@ -74,5 +74,8 @@ int main(int argc, const char** argv)
   startup();
   echo_client(port, ip);
   shutdown();
+
+  char f;
+  std::cin >> f;
   return 0;
 }

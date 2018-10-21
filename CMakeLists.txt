@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.9)
 project(dnet)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -61,7 +61,12 @@ add_executable(perf source/examples/perf.cpp ${COMMON_SOURCE} ${EXAMPLE_SOURCE})
 
 add_library(dnet ${COMMON_SOURCE})
 
-target_link_libraries(echo_server pthread)
-target_link_libraries(echo_client pthread)
-target_link_libraries(perf_fn_call pthread benchmark)
-target_link_libraries(perf pthread benchmark)
+if (WIN32) 
+	target_link_libraries(echo_server wsock32 ws2_32)
+	target_link_libraries(echo_client wsock32 ws2_32)
+else() 
+	target_link_libraries(echo_server pthread)
+	target_link_libraries(echo_client pthread)
+	target_link_libraries(perf_fn_call pthread benchmark)
+	target_link_libraries(perf pthread benchmark)
+endif()

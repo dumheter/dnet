@@ -22,7 +22,7 @@ namespace dnet
     REQUEST,
     UPDATE,
     INFO,
-    ERROR,
+    PERROR, // windows defines ERROR as a macro, thx...
 
     LAST_ENUN
   };
