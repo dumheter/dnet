@@ -25,7 +25,6 @@ set(COMMON_SOURCE
   source/dnet/util/types.hpp
   source/dnet/util/platform.hpp
   source/dnet/connection/connection.hpp
-  source/dnet/header/header_interface.hpp
   source/dnet/header/packet_header.cpp
   source/dnet/header/packet_header.hpp
   source/dnet/payload/payload.hpp
