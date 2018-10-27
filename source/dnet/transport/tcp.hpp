@@ -55,6 +55,10 @@ namespace dnet
 
     inline ssize_t write(u8* buf, size_t len) { return m_socket.write(buf, len); };
 
+    inline bool can_write() { return m_socket.can_write(); }
+
+    inline bool can_read() { return m_socket.can_read(); }
+
     inline std::string get_ip() { return m_socket.get_ip(); };
 
     inline u16 get_port() { return m_socket.get_port(); };

@@ -6,7 +6,6 @@
 // ============================================================ //
 
 #include <dnet/util/types.hpp>
-#include "header_interface.hpp"
 
 // ============================================================ //
 // Class Declaration
@@ -14,12 +13,21 @@
 
 namespace dnet
 {
-
-  class Packet_header : public Header_interface
+  enum class Packet_type : u8
   {
+    INVALID = 0,
+    RESPONSE,
+    REQUEST,
+    UPDATE,
+    INFO,
+    ERROR,
 
+    LAST_ENUN
+  };
+
+  class Packet_header
+  {
   public:
-
     Packet_header();
 
     Packet_header(const Packet_header& other);
@@ -30,26 +38,24 @@ namespace dnet
 
     ~Packet_header();
 
-    size_t get_payload_size() const override;
+    size_t get_payload_size() const;
 
-    static constexpr size_t get_header_size() { return sizeof(Header_meta); };
+    static constexpr size_t get_header_size() { return sizeof(Header_meta); }
 
-    Packet_type get_type() const override;
+    Packet_type get_type() const;
 
-    bool is_valid() override;
+    bool is_valid();
 
-    void build_header(payload_container& payload) override;
+    void build_header(size_t payload_size);
 
-    u8* get() override;
+    u8* get();
 
   private:
+    void set_payload_size(size_t size);
 
-    void set_payload_size(size_t size) override;
-
-    void set_type(Packet_type type) override;
+    void set_type(Packet_type type);
 
   public:
-
     struct Header_meta
     {
       Packet_type type;
@@ -57,7 +63,6 @@ namespace dnet
     };
 
   private:
-
     u8* m_header;
 
   };

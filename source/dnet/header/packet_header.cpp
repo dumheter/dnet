@@ -13,7 +13,6 @@
 
 namespace dnet
 {
-
   Packet_header::Packet_header()
     : m_header(new u8[sizeof(Header_meta)])
   {
@@ -96,9 +95,9 @@ namespace dnet
     header->type = type;
   }
 
-  void Packet_header::build_header(payload_container& payload)
+  void Packet_header::build_header(size_t payload_size)
   {
-    set_payload_size(payload.size());
+    set_payload_size(payload_size);
     set_type(Packet_type::INFO);
   }
 
@@ -106,5 +105,4 @@ namespace dnet
   {
     return m_header;
   }
-
 }

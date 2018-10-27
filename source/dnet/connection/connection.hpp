@@ -72,8 +72,14 @@ namespace dnet
     void disconnect();
 
     void read(payload_container& payload);
+    //void read(u8* payload, size_t payload_size);
 
     void write(payload_container& payload);
+    void write(u8* payload, size_t payload_size);
+
+    bool can_read();
+
+    bool can_write();
 
     // ====================================================================== //
     // Server methods
@@ -200,7 +206,7 @@ namespace dnet
   {
     // todo make it possible to break out of loops if bad header
 
-    m_header.build_header(payload);
+    m_header.build_header(payload.size());
 
     ssize_t bytes = 0;
     while (bytes < m_header.get_header_size()) {
@@ -211,6 +217,36 @@ namespace dnet
     while (bytes < m_header.get_payload_size()) {
       bytes += m_transport.write(&payload[0], payload.size());
     }
+  }
+
+  template<typename TTransport, typename THeader, u64 MAX_PAYLOAD_SIZE>
+  void Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>::write(u8* payload, size_t payload_size)
+  {
+    // todo make it possible to break out of loops if bad header
+
+    m_header.build_header(payload_size);
+
+    ssize_t bytes = 0;
+    while (bytes < m_header.get_header_size()) {
+      bytes += m_transport.write(m_header.get(), m_header.get_header_size());
+    }
+
+    bytes = 0;
+    while (bytes < m_header.get_payload_size()) {
+      bytes += m_transport.write(payload, payload_size);
+    }
+  }
+
+  template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
+  bool Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::can_read()
+  {
+    return m_transport.can_read();
+  }
+
+  template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
+  bool Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::can_write()
+  {
+    return m_transport.can_write();
   }
 
   template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
