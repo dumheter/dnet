@@ -59,6 +59,8 @@ namespace dnet
 
     inline bool can_read() { return m_socket.can_read(); }
 
+    inline bool can_accept() { return m_socket.can_write(); }
+
     inline std::string get_ip() { return m_socket.get_ip(); };
 
     inline u16 get_port() { return m_socket.get_port(); };

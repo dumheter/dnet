@@ -81,6 +81,8 @@ namespace dnet
 
     bool can_write();
 
+    bool can_accept();
+
     // ====================================================================== //
     // Server methods
     // ====================================================================== //
@@ -247,6 +249,12 @@ namespace dnet
   bool Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::can_write()
   {
     return m_transport.can_write();
+  }
+
+  template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
+  bool Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::can_accept()
+  {
+    return m_transport.can_accept();
   }
 
   template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
