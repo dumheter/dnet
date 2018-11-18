@@ -32,6 +32,11 @@ namespace dnet
    */
   int get_nofd_soft_limit();
 
+  /**
+   * @return the hard limit, or -1 if error.
+   */
+  int get_nofd_hard_limit();
+
   constexpr int NOFD_HARD_LIMIT = -1;
 
 }

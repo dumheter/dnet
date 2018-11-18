@@ -24,11 +24,23 @@ namespace dnet
   {
 #if defined(DNET_PLATFORM_WINDOWS)
     assert(!"not implemented");
-    return false;
+    return -1;
 #endif
     struct rlimit rlp;
     auto res = getrlimit(RLIMIT_NOFILE, &rlp);
     if (res != 0) return -1;
     else return rlp.rlim_cur;
+  }
+
+  int get_nofd_hard_limit()
+  {
+#if defined(DNET_PLATFORM_WINDOWS)
+    assert(!"not implemented");
+    return -1;
+#endif
+    struct rlimit rlp;
+    auto res = getrlimit(RLIMIT_NOFILE, &rlp);
+    if (res != 0) return -1;
+    else return rlp.rlim_max;
   }
 }
