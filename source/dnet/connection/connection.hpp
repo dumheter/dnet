@@ -41,7 +41,6 @@ namespace dnet
 
 namespace dnet
 {
-
   template <typename TTransport = Tcp, typename THeader = Packet_header,
     u64 MAX_PAYLOAD_SIZE = std::numeric_limits<decltype(THeader::Header_meta::size)>::max()>
   class Connection
@@ -57,11 +56,12 @@ namespace dnet
     explicit Connection(TTransport&& transport);
     Connection(TTransport&& transport, THeader&& packet);
 
-    Connection(const Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>& other) = delete;
-    Connection& operator=(const Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>& other) = delete;
+    Connection(const Connection& other) = delete;
+    Connection& operator=(const Connection& other) = delete;
 
-    Connection(Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>&& other) noexcept;
-    Connection& operator=(Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>&& other) noexcept;
+    Connection(Connection&& other) noexcept;
+    //Connection(Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>&& other) noexcept;
+    Connection& operator=(Connection&& other) noexcept;
 
     // ====================================================================== //
     // Client methods
@@ -82,6 +82,8 @@ namespace dnet
     bool can_write();
 
     bool can_accept();
+
+    bool has_error();
 
     // ====================================================================== //
     // Server methods
@@ -146,9 +148,8 @@ namespace dnet
 
   template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
   Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::Connection(Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>&& other) noexcept
+    : m_transport(std::move(other.m_transport)), m_header(std::move(other.m_header))
   {
-    m_transport = std::move(other.m_transport);
-    m_header = std::move(other.m_header);
   }
 
   template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
@@ -256,6 +257,13 @@ namespace dnet
   {
     return m_transport.can_accept();
   }
+
+  template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
+  bool Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::has_error()
+  {
+    return m_transport.has_error();
+  }
+
 
   template<typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
   void Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::start_server(u16 port)

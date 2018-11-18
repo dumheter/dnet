@@ -107,6 +107,8 @@ namespace dnet
      */
     bool can_read();
 
+    bool has_error();
+
     /*
      * @throw socket_exception
      */

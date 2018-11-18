@@ -16,7 +16,7 @@ namespace dnet
   Packet_header::Packet_header()
     : m_header(new u8[sizeof(Header_meta)])
   {
-
+    memset(m_header, 0 , sizeof(Header_meta));
   }
 
   Packet_header::Packet_header(const Packet_header& other)
@@ -30,9 +30,7 @@ namespace dnet
   Packet_header& Packet_header::operator=(const Packet_header& other)
   {
     if (&other != this) {
-      if (m_header)
-        delete[] m_header;
-
+      delete[] m_header;
       m_header = new u8[sizeof(Header_meta)];
       memcpy(m_header, other.m_header, sizeof(Header_meta));
     }
@@ -49,6 +47,7 @@ namespace dnet
   Packet_header& Packet_header::operator=(Packet_header&& other) noexcept
   {
     if (&other != this) {
+      delete[] m_header;
       m_header = other.m_header;
       other.m_header = nullptr;
     }
@@ -58,8 +57,7 @@ namespace dnet
 
   Packet_header::~Packet_header()
   {
-    if (m_header)
-      delete[] m_header;
+    delete[] m_header;
   }
 
   size_t Packet_header::get_payload_size() const

@@ -29,6 +29,7 @@ set(COMMON_SOURCE
   source/dnet/header/packet_header.hpp
   source/dnet/payload/payload.hpp
   source/dnet/util/util.hpp
+  source/dnet/util/util.cpp
 
   )
 
@@ -60,10 +61,10 @@ add_executable(perf source/examples/perf.cpp ${COMMON_SOURCE} ${EXAMPLE_SOURCE})
 
 add_library(dnet ${COMMON_SOURCE})
 
-if (WIN32) 
+if (WIN32)
 	target_link_libraries(echo_server wsock32 ws2_32)
 	target_link_libraries(echo_client wsock32 ws2_32)
-else() 
+else()
 	target_link_libraries(echo_server pthread)
 	target_link_libraries(echo_client pthread)
 	target_link_libraries(perf_fn_call pthread benchmark)

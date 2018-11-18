@@ -3,6 +3,7 @@
 // ============================================================ //
 
 #include "socket.hpp"
+#include <iostream>
 
 // ============================================================ //
 // Class Definition
@@ -12,7 +13,7 @@ namespace dnet
 {
 
   Socket::Socket(chif_net_protocol proto, chif_net_address_family fam)
-    : m_proto(proto), m_fam(fam)
+    : m_socket(CHIF_NET_INVALID_SOCKET), m_proto(proto), m_fam(fam)
   {
     auto res = chif_net_open_socket(&m_socket, proto, fam);
 
@@ -66,10 +67,11 @@ namespace dnet
   Socket Socket::accept()
   {
     chif_net_address cli_address;
-    auto cli_sock = chif_net_accept(m_socket, &cli_address);
+    chif_net_socket cli_sock;
+    auto res = chif_net_accept(m_socket, &cli_address, &cli_sock);
 
-    if (cli_sock == CHIF_NET_INVALID_SOCKET) {
-      throw socket_exception("failed to accept socket");
+    if (res != CHIF_NET_RESULT_SUCCESS) {
+      throw socket_exception("failed to accept socket: " + std::string(chif_net_result_to_string(res)));
     }
 
     return Socket(cli_sock, m_proto, m_fam);
@@ -128,29 +130,35 @@ namespace dnet
 
   bool Socket::can_write()
   {
-    bool can;
-    auto res = chif_net_can_write(m_socket, &can);
+    int can;
+    const auto res = chif_net_can_write(m_socket, &can);
 
     if (res != CHIF_NET_RESULT_SUCCESS) {
       throw socket_exception("failed to check if we can write");
     }
 
-    return can;
+    return can != 0;
   }
 
   bool Socket::can_read()
   {
-    bool can;
-    auto res = chif_net_can_read(m_socket, &can);
+    int can;
+    const auto res = chif_net_can_read(m_socket, &can);
 
     if (res != CHIF_NET_RESULT_SUCCESS) {
       throw socket_exception("failed to check if we can read");
     }
 
-    return can;
+    return can != 0;
   }
 
-  std::string Socket::get_ip()
+  bool Socket::has_error()
+  {
+    const auto res = chif_net_has_error(m_socket);
+    return (res != CHIF_NET_RESULT_SUCCESS);
+  }
+
+    std::string Socket::get_ip()
   {
     char ip[CHIF_NET_IPVX_STRING_LENGTH];
     auto res = chif_net_get_ip(m_socket, ip, CHIF_NET_IPVX_STRING_LENGTH);
