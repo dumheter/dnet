@@ -1,54 +1,54 @@
 #include "util.hpp"
-#include "platform.hpp"
 #include <cassert>
+#include "platform.hpp"
 #if !defined(DNET_PLATFORM_WINDOWS)
 #include <sys/resource.h>
 #endif
 
-namespace dnet
-{
+namespace dnet {
 
-bool set_nofd_soft_limit(int limit)
-{
+bool set_nofd_soft_limit(int limit) {
 #if defined(DNET_PLATFORM_WINDOWS)
-    (void)limit;
-    assert(!"not implemented");
-    return false;
+  (void)limit;
+  assert(!"not implemented");
+  return false;
 #else
-    struct rlimit rlp;
-    auto res = getrlimit(RLIMIT_NOFILE, &rlp);
-    if (res != 0) return false;
+  struct rlimit rlp;
+  auto res = getrlimit(RLIMIT_NOFILE, &rlp);
+  if (res != 0) return false;
 
-    rlp.rlim_cur = limit == NOFD_HARD_LIMIT ? rlp.rlim_max : limit;
-    res = setrlimit(RLIMIT_NOFILE, &rlp);
-    return res == 0;
+  rlp.rlim_cur = limit == NOFD_HARD_LIMIT ? rlp.rlim_max : limit;
+  res = setrlimit(RLIMIT_NOFILE, &rlp);
+  return res == 0;
 #endif
 }
 
-int get_nofd_soft_limit()
-{
+int get_nofd_soft_limit() {
 #if defined(DNET_PLATFORM_WINDOWS)
-    assert(!"not implemented");
+  assert(!"not implemented");
+  return -1;
+#else
+  struct rlimit rlp;
+  auto res = getrlimit(RLIMIT_NOFILE, &rlp);
+  if (res != 0)
     return -1;
-#else
-    struct rlimit rlp;
-    auto res = getrlimit(RLIMIT_NOFILE, &rlp);
-    if (res != 0) return -1;
-    else return rlp.rlim_cur;
+  else
+    return rlp.rlim_cur;
 #endif
 }
 
-int get_nofd_hard_limit()
-{
+int get_nofd_hard_limit() {
 #if defined(DNET_PLATFORM_WINDOWS)
-    assert(!"not implemented");
-    return -1;
+  assert(!"not implemented");
+  return -1;
 #else
-    struct rlimit rlp;
-    auto res = getrlimit(RLIMIT_NOFILE, &rlp);
-    if (res != 0) return -1;
-    else return rlp.rlim_max;
+  struct rlimit rlp;
+  auto res = getrlimit(RLIMIT_NOFILE, &rlp);
+  if (res != 0)
+    return -1;
+  else
+    return rlp.rlim_max;
 #endif
 }
 
-}
+}  // namespace dnet

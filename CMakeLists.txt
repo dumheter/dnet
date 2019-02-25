@@ -10,6 +10,12 @@ include_directories(
   source/thirdparty/argparse
 )
 
+if (WIN32)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+else ()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+endif ()
+
 set(COMMON_SOURCE
   source/dnet/socket/socket.cpp
   source/dnet/socket/socket.hpp

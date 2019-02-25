@@ -86,12 +86,12 @@ int main(int argc, const char** argv)
   struct argparse_option options[] = {
     OPT_HELP(),
     OPT_GROUP("Settings"),
-    OPT_INTEGER('p', "port", &port, "port"),
-    OPT_STRING('i', "ip", &ip, "ip address"),
+    OPT_INTEGER('p', "port", &port, "port", NULL, 0, 0),
+    OPT_STRING('i', "ip", &ip, "ip address", NULL, 0, 0),
     OPT_END(),
   };
 
-  struct argparse argparse;
+  struct argparse argparse{};
   argparse_init(&argparse, options, NULL, 0);
   argparse_describe(&argparse, NULL, NULL);
   argc = argparse_parse(&argparse, argc, argv);

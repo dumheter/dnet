@@ -11,21 +11,15 @@
 // Class Declaration
 // ============================================================ //
 
-namespace dnet
-{
+namespace dnet {
 
-  class dnet_exception : public std::runtime_error
-  {
-  public:
+class dnet_exception : public std::runtime_error {
+ public:
+  explicit dnet_exception(const std::string& what) : std::runtime_error(what){};
 
-    explicit dnet_exception(const std::string& what)
-      : std::runtime_error(what) {};
+  explicit dnet_exception(const char* what) : std::runtime_error(what){};
+};
 
-    explicit dnet_exception(const char* what)
-      : std::runtime_error(what) {};
+}  // namespace dnet
 
-  };
-
-}
-
-#endif //DNET_EXCEPTION_HPP_
+#endif  // DNET_EXCEPTION_HPP_
