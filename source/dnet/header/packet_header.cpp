@@ -103,4 +103,9 @@ namespace dnet
   {
     return m_header;
   }
+
+const u8* Packet_header::get_const()
+{
+    return m_header;
+}
 }

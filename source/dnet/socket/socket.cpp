@@ -46,7 +46,7 @@ namespace dnet
   {
   }
 
-  void Socket::bind(u16 port)
+  void Socket::bind(u16 port) const
   {
     auto res = chif_net_bind(m_socket, port, m_fam);
 
@@ -55,16 +55,16 @@ namespace dnet
     }
   }
 
-  void Socket::listen()
+  void Socket::listen() const
   {
-    auto res = chif_net_listen(m_socket, CHIF_NET_DEFAULT_MAXIMUM_BACKLOG);
+      auto res = chif_net_listen(m_socket, CHIF_NET_DEFAULT_BACKLOG);
 
     if (res != CHIF_NET_RESULT_SUCCESS) {
       throw socket_exception("failed to listen");
     }
   }
 
-  Socket Socket::accept()
+  Socket Socket::accept() const
   {
     chif_net_address cli_address;
     chif_net_socket cli_sock;
@@ -77,7 +77,7 @@ namespace dnet
     return Socket(cli_sock, m_proto, m_fam);
   }
 
-  ssize_t Socket::read(u8* buf, size_t len)
+  ssize_t Socket::read(u8* buf, size_t len) const
   {
     ssize_t bytes;
     auto res = chif_net_read(m_socket, buf, len, &bytes);
@@ -89,7 +89,7 @@ namespace dnet
     return bytes;
   }
 
-  ssize_t Socket::write(u8* buf, size_t len)
+  ssize_t Socket::write(const u8* buf, size_t len) const
   {
     ssize_t bytes;
     auto res = chif_net_write(m_socket, buf, len, &bytes);
@@ -121,17 +121,17 @@ namespace dnet
         throw socket_exception("failed to open socket when attempting to connect");
       }
     }
-    res = chif_net_connect(m_socket, addr);
+    res = chif_net_connect(m_socket, &addr);
 
     if (res != CHIF_NET_RESULT_SUCCESS) {
       throw socket_exception("falied to connect to remote");
     }
   }
 
-  bool Socket::can_write()
+  bool Socket::can_write() const
   {
     int can;
-    const auto res = chif_net_can_write(m_socket, &can);
+    const auto res = chif_net_can_write(m_socket, &can, 0);
 
     if (res != CHIF_NET_RESULT_SUCCESS) {
       throw socket_exception("failed to check if we can write");
@@ -140,10 +140,10 @@ namespace dnet
     return can != 0;
   }
 
-  bool Socket::can_read()
+  bool Socket::can_read() const
   {
     int can;
-    const auto res = chif_net_can_read(m_socket, &can);
+    const auto res = chif_net_can_read(m_socket, &can, 0);
 
     if (res != CHIF_NET_RESULT_SUCCESS) {
       throw socket_exception("failed to check if we can read");
@@ -152,16 +152,16 @@ namespace dnet
     return can != 0;
   }
 
-  bool Socket::has_error()
+  bool Socket::has_error() const
   {
     const auto res = chif_net_has_error(m_socket);
     return (res != CHIF_NET_RESULT_SUCCESS);
   }
 
-    std::string Socket::get_ip()
+    std::string Socket::get_ip() const
   {
     char ip[CHIF_NET_IPVX_STRING_LENGTH];
-    auto res = chif_net_get_ip(m_socket, ip, CHIF_NET_IPVX_STRING_LENGTH);
+    auto res = chif_net_ip_from_socket(m_socket, ip, CHIF_NET_IPVX_STRING_LENGTH);
 
     if (res != CHIF_NET_RESULT_SUCCESS) {
       throw socket_exception("failed to get ip");
@@ -170,10 +170,10 @@ namespace dnet
     return std::string(ip);
   }
 
-  u16 Socket::get_port()
+  u16 Socket::get_port() const
   {
     u16 port;
-    auto res = chif_net_get_port(m_socket, &port);
+    auto res = chif_net_port_from_socket(m_socket, &port);
 
     if (res != CHIF_NET_RESULT_SUCCESS) {
       throw socket_exception("failed to get port");
@@ -182,10 +182,10 @@ namespace dnet
     return port;
   }
 
-  std::string Socket::get_remote_ip()
+  std::string Socket::get_remote_ip() const
   {
     char ip[CHIF_NET_IPVX_STRING_LENGTH];
-    auto res = chif_net_get_peer_ip(m_socket, ip, CHIF_NET_IPVX_STRING_LENGTH);
+    auto res = chif_net_ip_from_socket(m_socket, ip, CHIF_NET_IPVX_STRING_LENGTH);
 
     if (res != CHIF_NET_RESULT_SUCCESS) {
       throw socket_exception("failed to get remote ip");
@@ -194,10 +194,10 @@ namespace dnet
     return std::string(ip);
   }
 
-  u16 Socket::get_remote_port()
+  u16 Socket::get_remote_port() const
   {
     u16 port;
-    auto res = chif_net_get_peer_port(m_socket, &port);
+    auto res = chif_net_port_from_socket(m_socket, &port);
 
     if (res != CHIF_NET_RESULT_SUCCESS) {
       throw socket_exception("failed to get remote port");
@@ -206,7 +206,7 @@ namespace dnet
     return port;
   }
 
-  void Socket::set_reuse_addr(bool reuse)
+  void Socket::set_reuse_addr(bool reuse) const
   {
     auto res = chif_net_set_reuse_addr(m_socket, reuse);
 
@@ -215,7 +215,7 @@ namespace dnet
     }
   }
 
-  void Socket::set_blocking(bool blocking)
+  void Socket::set_blocking(bool blocking) const
   {
     auto res = chif_net_set_socket_blocking(m_socket, blocking);
 

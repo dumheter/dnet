@@ -5,11 +5,9 @@
 // Headers
 // ============================================================ //
 
-#define CHIF_NET_IMPLEMENTATION
-
-#include <dnet/util/dnet_exception.hpp>
-#include <dnet/util/types.hpp>
-#include <thirdparty/chif/chif_net.h>
+#include "dnet/util/dnet_exception.hpp"
+#include "dnet/util/types.hpp"
+#include "chif_net/chif_net.h"
 
 // ====================================================================== //
 // Exception Class
@@ -68,27 +66,27 @@ namespace dnet
     /*
      * @throw socket_exception if unable to bind
      */
-    void bind(u16 port);
+    void bind(u16 port) const;
 
     /*
      * @throw socket_exception if unable to listen
      */
-    void listen();
+    void listen() const;
 
     /*
      * @throw socket_exception if unable to accept
      */
-    Socket accept();
+    Socket accept() const;
 
     /*
      * @throw socket_exception if fail to read
      */
-    ssize_t read(u8* buf, size_t len);
+    ssize_t read(u8* buf_out, size_t len) const;
 
     /*
      * @throw socket_exception if fail to read
      */
-    ssize_t write(u8* buf, size_t len);
+    ssize_t write(const u8* buf, size_t len) const;
 
     void close();
 
@@ -100,44 +98,44 @@ namespace dnet
     /*
      * @throw socket_exception
      */
-    bool can_write();
+    bool can_write() const;
 
     /*
      * @throw socket_exception
      */
-    bool can_read();
+    bool can_read() const;
 
-    bool has_error();
-
-    /*
-     * @throw socket_exception
-     */
-    std::string get_ip();
+    bool has_error() const;
 
     /*
      * @throw socket_exception
      */
-    u16 get_port();
+    std::string get_ip() const;
 
     /*
      * @throw socket_exception
      */
-    std::string get_remote_ip();
+    u16 get_port() const;
 
     /*
      * @throw socket_exception
      */
-    u16 get_remote_port();
+    std::string get_remote_ip() const;
 
     /*
      * @throw socket_exception
      */
-    void set_reuse_addr(bool reuse);
+    u16 get_remote_port() const;
 
     /*
      * @throw socket_exception
      */
-    void set_blocking(bool blocking);
+    void set_reuse_addr(bool reuse) const;
+
+    /*
+     * @throw socket_exception
+     */
+    void set_blocking(bool blocking) const;
 
   private:
     chif_net_socket m_socket;

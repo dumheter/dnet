@@ -50,6 +50,8 @@ namespace dnet
 
     u8* get();
 
+    const u8* get_const();
+
   private:
     void set_payload_size(size_t size);
 

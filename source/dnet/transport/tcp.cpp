@@ -33,14 +33,14 @@ namespace dnet
   {
   }
 
-  void Tcp::start_server(u16 port)
+  void Tcp::start_server(u16 port) const
   {
     m_socket.set_reuse_addr(true);
     m_socket.bind(port);
     m_socket.listen();
   }
 
-  Tcp Tcp::accept()
+  Tcp Tcp::accept() const
   {
     auto sock = m_socket.accept();
     return Tcp(std::move(sock));

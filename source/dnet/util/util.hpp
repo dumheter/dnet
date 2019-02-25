@@ -5,7 +5,7 @@
 // Headers
 // ============================================================ //
 
-#include <thirdparty/chif/chif_net.h>
+#include "chif_net/chif_net.h"
 
 // ============================================================ //
 // Class Declaration
