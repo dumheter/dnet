@@ -38,4 +38,4 @@ static_assert(sizeof(f64) == 8, "f64 is not 64-bits large");
 
 // ============================================================ //
 
-#endif //TYPES_HPP_
+#endif  // TYPES_HPP_

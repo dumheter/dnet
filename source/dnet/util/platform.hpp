@@ -9,7 +9,7 @@
 #define DNET_PLATFORM_WINDOWS
 #elif defined(__linux__)
 #define DNET_PLATFORM_LINUX
-#elif defined (__APPLE__)
+#elif defined(__APPLE__)
 #define DNET_PLATFORM_APPLE
 #endif
 
@@ -22,4 +22,4 @@
 #elif defined(DNET_PLATFORM_APPLE)
 #endif
 
-#endif//PLATFORM_HPP_
+#endif  // PLATFORM_HPP_
