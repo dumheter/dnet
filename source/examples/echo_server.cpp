@@ -2,17 +2,15 @@
 // Headers
 // ============================================================ //
 
+#include "dnet/transport/tcp.hpp"
+#include "dnet/connection.hpp"
+#include "dnet/header/packet_header.hpp"
+#include "dnet/util/util.hpp"
+#include "fmt/format.h"
+#include "argparse.h"
 #include <iostream>
 #include <thread>
 #include <memory>
-#include <fmt/format.h>
-#include <argparse.h>
-#include <dnet/transport/tcp.hpp>
-#include <dnet/connection/connection.hpp>
-#include <dnet/header/packet_header.hpp>
-#include <dnet/util/util.hpp>
-
-using namespace dnet;
 
 // ============================================================ //
 // Debug
@@ -33,12 +31,12 @@ fmt::print(__VA_ARGS__)
 // Class Definition
 // ============================================================ //
 
-void serve(std::unique_ptr<Connection<Tcp>>&& client)
+void serve(std::unique_ptr<dnet::Connection<dnet::Tcp>>&& client)
 {
   const auto port = client->get_remote_port();
 
   try {
-    payload_container payload;
+      dnet::payload_container payload;
     bool run = true;
     while (run) {
       client->read(payload);
@@ -51,7 +49,7 @@ void serve(std::unique_ptr<Connection<Tcp>>&& client)
       client->write(payload);
     }
   }
-  catch (const dnet_exception& e) {
+  catch (const dnet::dnet_exception& e) {
     dprint("[serve:{0}] connection closed [ex:{1}]\n", port, e.what());
   }
 }
@@ -59,7 +57,7 @@ void serve(std::unique_ptr<Connection<Tcp>>&& client)
 void run_server(u16 port)
 {
   try {
-    Connection<Tcp> server{};
+      dnet::Connection<dnet::Tcp> server{};
     server.start_server(port);
     dprint("init server @ {}:{}\n", server.get_ip(), server.get_port());
 
@@ -69,12 +67,12 @@ void run_server(u16 port)
       auto client = server.accept();
       dprint("new client from {0}:{1}\n", client.get_remote_ip(), client.get_remote_port());
 
-      auto cli_ptr = std::make_unique<Connection<Tcp>>(std::move(client));
+      auto cli_ptr = std::make_unique<dnet::Connection<dnet::Tcp>>(std::move(client));
       std::thread t(serve, std::move(cli_ptr));
       t.detach();
     }
   }
-  catch (const dnet_exception& e) {
+  catch (const dnet::dnet_exception& e) {
     dprint("[ex:{0}]\n", e.what());
   }
 }
@@ -105,9 +103,9 @@ int main(int argc, const char** argv)
     return 1;
   }
 
-  startup();
+  dnet::startup();
   run_server(port);
-  shutdown();
+  dnet::shutdown();
 
   return 0;
 }

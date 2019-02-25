@@ -1,5 +1,5 @@
-#ifndef NET_UTIL_HPP
-#define NET_UTIL_HPP
+#ifndef UTIL_HPP_
+#define UTIL_HPP_
 
 // ============================================================ //
 // Headers
@@ -41,4 +41,4 @@ namespace dnet
 
 }
 
-#endif //NET_UTIL_HPP
+#endif //UTIL_HPP_

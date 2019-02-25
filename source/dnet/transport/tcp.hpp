@@ -1,14 +1,13 @@
-#ifndef NET_TCP_HPP
-#define NET_TCP_HPP
+#ifndef TCP_HPP_
+#define TCP_HPP_
 
 // ============================================================ //
 // Headers
 // ============================================================ //
 
+#include "dnet/util/types.hpp"
+#include "dnet/socket/socket.hpp"
 #include <string>
-
-#include <dnet/util/types.hpp>
-#include <dnet/socket/socket.hpp>
 
 // ============================================================ //
 // Class Declaration
@@ -80,4 +79,4 @@ namespace dnet
 
 }
 
-#endif //NET_TCP_HPP
+#endif //TCP_HPP_

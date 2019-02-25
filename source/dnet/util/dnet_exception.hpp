@@ -1,5 +1,5 @@
-#ifndef NET_DNET_EXCEPTION_HPP
-#define NET_DNET_EXCEPTION_HPP
+#ifndef DNET_EXCEPTION_HPP_
+#define DNET_EXCEPTION_HPP_
 
 // ============================================================ //
 // Headers
@@ -28,4 +28,4 @@ namespace dnet
 
 }
 
-#endif //NET_DNET_EXCEPTION_HPP
+#endif //DNET_EXCEPTION_HPP_

@@ -1,5 +1,5 @@
-#ifndef DNET_TYPES_HPP
-#define DNET_TYPES_HPP
+#ifndef TYPES_HPP_
+#define TYPES_HPP_
 
 // ====================================================================== //
 // Headers
@@ -38,4 +38,4 @@ static_assert(sizeof(f64) == 8, "f64 is not 64-bits large");
 
 // ============================================================ //
 
-#endif //DNET_TYPES_HPP
+#endif //TYPES_HPP_

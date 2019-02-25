@@ -1,5 +1,5 @@
-#ifndef NET_SOCKET_HPP
-#define NET_SOCKET_HPP
+#ifndef SOCKET_HPP_
+#define SOCKET_HPP_
 
 // ============================================================ //
 // Headers
@@ -146,4 +146,4 @@ namespace dnet
 
 }
 
-#endif //NET_SOCKET_HPP
+#endif //SOCKET_HPP_

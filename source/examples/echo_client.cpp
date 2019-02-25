@@ -2,16 +2,14 @@
 // Headers
 // ============================================================ //
 
+#include "dnet/transport/tcp.hpp"
+#include "dnet/header/packet_header.hpp"
+#include "dnet/connection.hpp"
+#include "dnet/util/util.hpp"
+#include "fmt/format.h"
+#include "argparse.h"
 #include <iostream>
 #include <thread>
-#include <fmt/format.h>
-#include <argparse.h>
-#include <dnet/transport/tcp.hpp>
-#include <dnet/header/packet_header.hpp>
-#include <dnet/connection/connection.hpp>
-#include <dnet/util/util.hpp>
-
-using namespace dnet;
 
 // ============================================================ //
 // Debug
@@ -33,9 +31,9 @@ void echo_client(u16 port, const char* ip)
   try {
     dprint("connecting to {}:{}\n", ip, port);
     std::string msg("hey there from the client");
-    payload_container payload{msg.begin(), msg.end()};
+    dnet::payload_container payload{msg.begin(), msg.end()};
 
-    Connection<Tcp> client{};
+    dnet::Connection<dnet::Tcp> client{};
     client.connect(std::string(ip), port);
     client.write(payload);
     dprint("[{}] [wrote:{}]\n", __func__, msg);
@@ -44,7 +42,7 @@ void echo_client(u16 port, const char* ip)
     client.read(payload);
     dprint("[read:{}]\n", std::string(payload.begin(), payload.end()));
   }
-  catch (const dnet_exception& e) {
+  catch (const dnet::dnet_exception& e) {
     dprint("[ex:{}]\n", e.what());
   }
 }
@@ -71,9 +69,9 @@ int main(int argc, const char** argv)
   if (!ip)
     ip = "127.0.0.1";
 
-  startup();
+  dnet::startup();
   echo_client(port, ip);
-  shutdown();
+  dnet::shutdown();
 
   char f;
   std::cin >> f;

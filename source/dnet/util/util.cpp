@@ -7,6 +7,7 @@
 
 namespace dnet
 {
+
 bool set_nofd_soft_limit(int limit)
 {
 #if defined(DNET_PLATFORM_WINDOWS)
@@ -49,4 +50,5 @@ int get_nofd_hard_limit()
     else return rlp.rlim_max;
 #endif
 }
+
 }

@@ -1,8 +1,5 @@
-/**
- * Thanks Filip for most things in this header.
- */
-
-#pragma once
+#ifndef PLATFORM_HPP_
+#define PLATFORM_HPP_
 
 // ============================================================ //
 // Platform Detection
@@ -24,3 +21,5 @@
 #elif defined(DNET_PLATFORM_LINUX)
 #elif defined(DNET_PLATFORM_APPLE)
 #endif
+
+#endif//PLATFORM_HPP_

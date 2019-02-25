@@ -1,12 +1,12 @@
-#ifndef NET_PAYLOAD_HPP
-#define NET_PAYLOAD_HPP
+#ifndef PAYLOAD_HPP_
+#define PAYLOAD_HPP_
 
 // ============================================================ //
 // Headers
 // ============================================================ //
 
+#include "dnet/util/types.hpp"
 #include <vector>
-#include <dnet/util/types.hpp>
 
 // ============================================================ //
 // Class Declaration
@@ -15,8 +15,8 @@
 namespace dnet
 {
 
-  typedef std::vector<u8> payload_container;
+using payload_container = std::vector<u8>;
 
 }
 
-#endif //NET_PAYLOAD_HPP
+#endif //PAYLOAD_HPP_

@@ -1,5 +1,5 @@
-#ifndef NET_UDP_HPP
-#define NET_UDP_HPP
+#ifndef UDP_HPP_
+#define UDP_HPP_
 
 // ============================================================ //
 // Headers
@@ -13,4 +13,4 @@
 
 
 
-#endif //NET_UDP_HPP
+#endif //UDP_HPP_

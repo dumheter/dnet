@@ -1,19 +1,8 @@
-#ifndef DNET_MACROS_HPP
-#define DNET_MACROS_HPP
+#ifndef DNET_MACROS_HPP_
+#define DNET_MACROS_HPP_
 
 // ============================================================ //
 // Macro Declaration
-// ============================================================ //
-
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
-#endif
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
-
 // ============================================================ //
 
 // make this: "/path/to/file.c" into this: "file.c"
@@ -36,4 +25,4 @@
 
 // ============================================================ //
 
-#endif //DNET_MACROS_HPP
+#endif //DNET_MACROS_HPP_

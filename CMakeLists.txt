@@ -11,8 +11,6 @@ include_directories(
 )
 
 set(COMMON_SOURCE
-  source/thirdparty/chif_net/chif_net/chif_net.h
-
   source/dnet/socket/socket.cpp
   source/dnet/socket/socket.hpp
   source/dnet/transport/tcp.cpp
@@ -23,35 +21,36 @@ set(COMMON_SOURCE
   source/dnet/util/macros.hpp
   source/dnet/util/types.hpp
   source/dnet/util/platform.hpp
-  source/dnet/connection/connection.hpp
-  source/dnet/connection/connection.cpp
+  source/dnet/connection.hpp
+  source/dnet/connection.cpp
   source/dnet/header/packet_header.cpp
   source/dnet/header/packet_header.hpp
   source/dnet/payload/payload.hpp
   source/dnet/util/util.hpp
   source/dnet/util/util.cpp
 
+  source/thirdparty/chif_net/chif_net/chif_net.c
+  source/thirdparty/chif_net/chif_net/chif_net.h
+
   )
 
-set(THIRDPARTY_SOURCE
+set(IO_SOURCE
   source/thirdparty/argparse/argparse.c
   source/thirdparty/argparse/argparse.h
 
-  source/thirdparty/fmt/include/fmt/format.h
   source/thirdparty/fmt/src/format.cc
-
+  source/thirdparty/fmt/include/fmt/format.h
 
   )
 
-add_executable(echo_server source/examples/echo_server.cpp ${COMMON_SOURCE} ${THIRDPARTY_SOURCE})
-add_executable(echo_client source/examples/echo_client.cpp ${COMMON_SOURCE} ${THIRDPARTY_SOURCE})
-
-add_library(dnet ${COMMON_SOURCE})
+add_executable(echo_server source/examples/echo_server.cpp ${COMMON_SOURCE} ${IO_SOURCE})
+add_executable(echo_client source/examples/echo_client.cpp ${COMMON_SOURCE} ${IO_SOURCE})
+# add_library(dnet ${COMMON_SOURCE})
 
 if (WIN32)
-	target_link_libraries(echo_server wsock32 ws2_32)
-	target_link_libraries(echo_client wsock32 ws2_32)
+  target_link_libraries(echo_server wsock32 ws2_32)
+  target_link_libraries(echo_client wsock32 ws2_32)
 else()
-	target_link_libraries(echo_server pthread)
-	target_link_libraries(echo_client pthread)
+  target_link_libraries(echo_server pthread)
+  target_link_libraries(echo_client pthread)
 endif()
