@@ -104,7 +104,7 @@ int main(int argc, const char** argv)
   }
 
   dnet::startup();
-  run_server(port);
+  run_server(static_cast<u16>(port));
   dnet::shutdown();
 
   return 0;
