@@ -51,7 +51,6 @@ set(IO_SOURCE
 
 add_executable(echo_server source/examples/echo_server.cpp ${COMMON_SOURCE} ${IO_SOURCE})
 add_executable(echo_client source/examples/echo_client.cpp ${COMMON_SOURCE} ${IO_SOURCE})
-# add_library(dnet ${COMMON_SOURCE})
 
 if (WIN32)
   target_link_libraries(echo_server wsock32 ws2_32)
