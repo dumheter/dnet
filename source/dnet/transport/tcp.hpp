@@ -6,8 +6,10 @@
 // ============================================================ //
 
 #include <string>
+#include <optional>
 #include "dnet/socket/socket.hpp"
 #include "dnet/util/types.hpp"
+#include "dnet/util/result.hpp"
 
 // ============================================================ //
 // Class Declaration
@@ -19,6 +21,7 @@ class Tcp {
  public:
   Tcp();
 
+  // no copy
   Tcp(const Tcp& other) = delete;
   Tcp& operator=(const Tcp& other) = delete;
 
@@ -29,47 +32,44 @@ class Tcp {
   explicit Tcp(Socket&& socket);
 
  public:
-  /*
-   * @throw socket_exception
-   */
-  void start_server(u16 port) const;
+  Result start_server(u16 port);
 
   /*
-   * block until a client connects
-   * @throw socket_exception
+   * Block until a client connects, call can_block() first to avoid blocking.
    */
-  Tcp accept() const;
+  std::optional<Tcp> accept();
 
-  /*
-   * @throw socket_exception
-   */
-  void connect(const std::string& ip, u16 port);
+  Result connect(const std::string& ip, u16 port) {
+    return m_socket.connect(ip, port);
+  }
 
-  void disconnect();
+  void disconnect() { m_socket.close(); }
 
-  inline ssize_t read(u8* buf_out, size_t len) const {
-    return m_socket.read(buf_out, len);
+  std::optional<ssize_t> read(u8* buf_out, size_t buflen) {
+    return m_socket.read(buf_out, buflen);
   };
 
-  inline ssize_t write(const u8* buf, size_t len) const {
-    return m_socket.write(buf, len);
+  std::optional<ssize_t> write(const u8* buf, size_t buflen) {
+    return m_socket.write(buf, buflen);
   };
 
-  inline bool can_write() const { return m_socket.can_write(); }
+  bool can_write() const { return m_socket.can_write(); }
 
-  inline bool can_read() const { return m_socket.can_read(); }
+  bool can_read() const { return m_socket.can_read(); }
 
-  inline bool can_accept() const { return m_socket.can_read(); }
+  bool can_accept() const { return m_socket.can_read(); }
 
-  inline bool has_error() const { return m_socket.has_error(); }
+  bool has_error() const { return m_socket.has_error(); }
 
-  inline std::string get_ip() const { return m_socket.get_ip(); }
+  std::optional<std::string> get_ip() { return m_socket.get_ip(); }
 
-  inline u16 get_port() const { return m_socket.get_port(); }
+  std::optional<u16> get_port() { return m_socket.get_port(); }
 
-  inline std::string get_remote_ip() const { return m_socket.get_remote_ip(); };
-
-  inline u16 get_remote_port() const { return m_socket.get_remote_port(); }
+  /**
+   * If a Result comes back as kFail, or std::optional as std::nullopt, an
+   * error will be set. Use this function to access the error string.
+   */
+  std::string last_error_to_string() const { return m_socket.last_error_to_string(); }
 
  private:
   Socket m_socket;

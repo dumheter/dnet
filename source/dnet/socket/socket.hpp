@@ -6,22 +6,10 @@
 // ============================================================ //
 
 #include "chif_net/chif_net.h"
-#include "dnet/util/dnet_exception.hpp"
 #include "dnet/util/types.hpp"
-
-// ====================================================================== //
-// Exception Class
-// ====================================================================== //
-
-namespace dnet {
-
-class socket_exception : public dnet_exception {
- public:
-  explicit socket_exception(const std::string& what) : dnet_exception(what){};
-
-  explicit socket_exception(const char* what) : dnet_exception(what){};
-};
-}  // namespace dnet
+#include "dnet/util/result.hpp"
+#include <optional>
+#include <string>
 
 // ============================================================ //
 // Class Declaration
@@ -31,9 +19,6 @@ namespace dnet {
 
 class Socket {
  public:
-  /*
-   * @throw socket_exception if unable to open socket
-   */
   Socket(chif_net_protocol proto, chif_net_address_family fam);
 
   ~Socket() { chif_net_close_socket(&m_socket); };
@@ -52,84 +37,64 @@ class Socket {
          chif_net_address_family fam);
 
  public:
-  /*
-   * @throw socket_exception if unable to bind
-   */
-  void bind(u16 port) const;
+  Result open();
 
-  /*
-   * @throw socket_exception if unable to listen
-   */
-  void listen() const;
+  Result bind(u16 port);
 
-  /*
-   * @throw socket_exception if unable to accept
-   */
-  Socket accept() const;
+  Result listen();
 
-  /*
-   * @throw socket_exception if fail to read
-   */
-  ssize_t read(u8* buf_out, size_t len) const;
+  std::optional<Socket> accept();
 
-  /*
-   * @throw socket_exception if fail to read
+  /**
+   * @return Amount of read bytes, or nullopt on failure.
    */
-  ssize_t write(const u8* buf, size_t len) const;
+  std::optional<ssize_t> read(u8* buf_out, size_t buflen);
+
+  /**
+   * @return Amount of written bytes, or nullopt on failure.
+   */
+  std::optional<ssize_t> write(const u8* buf, size_t buflen);
 
   void close();
 
-  /*
-   * @throw socket_exception if unable to connect or create address
-   */
-  void connect(const std::string& ip, u16 port);
+  Result connect(const std::string& ip, u16 port);
 
-  /*
-   * @throw socket_exception
+  /**
+   * @return Any error occured while attempting to check, will return false.
    */
   bool can_write() const;
 
-  /*
-   * @throw socket_exception
+  /**
+   * @return Any error occured while attempting to check, will return false.
    */
   bool can_read() const;
 
+  /**
+   * @return Any error occured while attempting to check, will return false.
+   */
   bool has_error() const;
 
-  /*
-   * @throw socket_exception
+  /**
+   * @return Ip address, or nullopt on failure.
    */
-  std::string get_ip() const;
+  std::optional<std::string> get_ip();
 
-  /*
-   * @throw socket_exception
+  /**
+   * @return Port, or nullopt on failure.
    */
-  u16 get_port() const;
+  std::optional<u16> get_port();
 
-  /*
-   * @throw socket_exception
-   */
-  std::string get_remote_ip() const;
+  Result set_reuse_addr(bool reuse) const;
 
-  /*
-   * @throw socket_exception
-   */
-  u16 get_remote_port() const;
+  Result set_blocking(bool blocking) const;
 
-  /*
-   * @throw socket_exception
-   */
-  void set_reuse_addr(bool reuse) const;
-
-  /*
-   * @throw socket_exception
-   */
-  void set_blocking(bool blocking) const;
+  std::string last_error_to_string() const;
 
  private:
   chif_net_socket m_socket;
   chif_net_protocol m_proto;
   chif_net_address_family m_fam;
+  chif_net_result m_last_error;
 };
 
 }  // namespace dnet

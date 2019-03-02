@@ -5,7 +5,6 @@
 #include "packet_header.hpp"
 #include <cstring>
 #include <limits>
-#include "dnet/util/dnet_exception.hpp"
 
 // ============================================================ //
 // Class Definition
@@ -54,19 +53,17 @@ size_t Packet_header::get_payload_size() const {
   return header->size;
 }
 
-void Packet_header::set_payload_size(size_t size) {
+Result Packet_header::set_payload_size(size_t size) {
   Header_meta* header = reinterpret_cast<Header_meta*>(m_header);
-  if (size > std::numeric_limits<decltype(header->size)>::max())
-    throw dnet_exception("size too large, narrowing would occur");
-  header->size = size;
+  if (size <= std::numeric_limits<decltype(header->size)>::max()) {
+    header->size = size;
+    return Result::kSuccess;
+  }
+  return Result::kFail;
 }
 
-void Packet_header::build_header(size_t payload_size) {
-  set_payload_size(payload_size);
+Result Packet_header::build_header(size_t payload_size) {
+  return set_payload_size(payload_size);
 }
-
-u8* Packet_header::get() { return m_header; }
-
-const u8* Packet_header::get_const() { return m_header; }
 
 }  // namespace dnet

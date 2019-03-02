@@ -17,21 +17,19 @@ else ()
 endif ()
 
 set(COMMON_SOURCE
+  source/dnet/connection.hpp
+  source/dnet/header/packet_header.cpp
+  source/dnet/header/packet_header.hpp
+  source/dnet/payload/payload.hpp
   source/dnet/socket/socket.cpp
   source/dnet/socket/socket.hpp
   source/dnet/transport/tcp.cpp
   source/dnet/transport/tcp.hpp
   source/dnet/transport/udp.cpp
   source/dnet/transport/udp.hpp
-  source/dnet/util/dnet_exception.hpp
   source/dnet/util/macros.hpp
   source/dnet/util/types.hpp
   source/dnet/util/platform.hpp
-  source/dnet/connection.hpp
-  source/dnet/connection.cpp
-  source/dnet/header/packet_header.cpp
-  source/dnet/header/packet_header.hpp
-  source/dnet/payload/payload.hpp
   source/dnet/util/util.hpp
   source/dnet/util/util.cpp
 

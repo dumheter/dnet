@@ -7,31 +7,20 @@
 
 #include <limits>
 #include <string>
+#include <optional>
 #include "dnet/header/packet_header.hpp"
 #include "dnet/payload/payload.hpp"
 #include "dnet/transport/tcp.hpp"
-#include "dnet/util/dnet_exception.hpp"
 #include "dnet/util/types.hpp"
-
-// ====================================================================== //
-// Exception Class
-// ====================================================================== //
-
-namespace dnet {
-
-class connection_exception : public dnet_exception {
- public:
-  explicit connection_exception(const std::string& what);
-
-  explicit connection_exception(const char* what);
-};
-
-}  // namespace dnet
+#include "dnet/util/result.hpp"
 
 // ============================================================ //
 // Class Declaration
 // ============================================================ //
 
+/**
+ * TODO Make payload container be part of the template
+ */
 namespace dnet {
 template <typename TTransport = Tcp, typename THeader = Packet_header,
           u64 MAX_PAYLOAD_SIZE =
@@ -50,53 +39,60 @@ class Connection {
   Connection& operator=(const Connection& other) = delete;
 
   Connection(Connection&& other) noexcept;
-  // Connection(Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>&& other)
-  // noexcept;
   Connection& operator=(Connection&& other) noexcept;
 
   // ====================================================================== //
   // Client methods
   // ====================================================================== //
 
-  void connect(const std::string& ip, u16 port);
+  Result connect(const std::string& ip, u16 port);
 
   void disconnect();
 
-  void read(payload_container& payload_out);
+  std::optional<payload_container> read();
+  Result read(payload_container& payload_out);
   // void read(u8* payload, size_t payload_size);
 
-  void write(const payload_container& payload);
-  void write(const u8* payload, size_t payload_size);
+  Result write(const payload_container& payload);
+  Result write(const u8* payload, size_t payload_size);
 
+  /**
+   * @return Any error occured while attempting to check, will return false.
+   */
   bool can_read() const;
 
+  /**
+   * @return Any error occured while attempting to check, will return false.
+   */
   bool can_write() const;
-
-  bool can_accept() const;
-
-  bool has_error() const;
 
   // ====================================================================== //
   // Server methods
   // ====================================================================== //
 
-  void start_server(u16 port);
+  Result start_server(u16 port);
 
-  Connection accept();
+  std::optional<Connection> accept();
+
+  /**
+   * @return Any error occured while attempting to check, will return false.
+   */
+  bool can_accept() const;
 
   // ====================================================================== //
   // General methods
   // ====================================================================== //
 
-  inline std::string get_ip() const { return m_transport.get_ip(); }
+  /**
+   * @return Any error occured while attempting to check, will return false.
+   */
+  bool has_error() const;
 
-  inline u16 get_port() const { return m_transport.get_port(); }
+  std::optional<std::string> get_ip() { return m_transport.get_ip(); }
 
-  inline std::string get_remote_ip() const {
-    return m_transport.get_remote_ip();
-  }
+  std::optional<u16> get_port() { return m_transport.get_port(); }
 
-  inline u16 get_remote_port() const { return m_transport.get_remote_port(); }
+  std::string last_error_to_string() const { return m_transport.last_error_to_string(); }
 
   // ====================================================================== //
   // Private members
@@ -107,7 +103,6 @@ class Connection {
   THeader m_header;
 
   static constexpr u64 MIN_PAYLOAD_SIZE = 4048;
-  // static constexpr u64 MAX_PAYLOAD_SIZE =
 };
 
 // ====================================================================== //
@@ -147,9 +142,9 @@ Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::operator=(
 }
 
 template <typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
-void Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::connect(
+Result Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::connect(
     const std::string& ip, u16 port) {
-  m_transport.connect(ip, port);
+  return m_transport.connect(ip, port);
 }
 
 template <typename TTransport, typename THeader, u64 MAX_PAYLOAD_SIZE>
@@ -158,63 +153,123 @@ void Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>::disconnect() {
 }
 
 template <typename TTransport, typename THeader, u64 MAX_PAYLOAD_SIZE>
-void Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>::read(
-    payload_container& payload) {
-  // todo make it possible to break out of loops if bad header
-
-  ssize_t bytes = 0;
-  while (static_cast<size_t>(bytes) < m_header.get_header_size()) {
-    bytes += m_transport.read(m_header.get(), m_header.get_header_size());
+std::optional<payload_container>
+Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>::read() {
+  payload_container payload{};
+  const Result res = read(payload);
+  if (res == Result::kSuccess) {
+    return std::optional<payload_container>{payload};
   }
-
-  if (payload.capacity() < MIN_PAYLOAD_SIZE) payload.reserve(MIN_PAYLOAD_SIZE);
-  if (payload.capacity() < m_header.get_payload_size())
-    payload.reserve(m_header.get_payload_size());
-
-  payload.resize(payload.capacity());
-  bytes = 0;
-  while (static_cast<size_t>(bytes) < m_header.get_payload_size()) {
-    // todo timeout read in case bad into in header
-    bytes +=
-        m_transport.read(&payload[bytes], m_header.get_payload_size() - bytes);
-  }
-  payload.resize(static_cast<size_t>(bytes));
+  return std::nullopt;
 }
 
 template <typename TTransport, typename THeader, u64 MAX_PAYLOAD_SIZE>
-void Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>::write(
+Result
+Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>::read(payload_container& payload_out) {
+  ssize_t bytes = 0;
+  // TODO make it possible to break out of loops if bad header
+  // TODO bad cast
+  while (static_cast<size_t>(bytes) < m_header.get_header_size()) {
+    const auto maybe_bytes =
+        m_transport.read(m_header.get(), m_header.get_header_size());
+    if (maybe_bytes.has_value()) {
+      bytes += maybe_bytes.value();
+    }
+    else {
+      return Result::kFail;
+    }
+  }
+
+  if (payload_out.capacity() < m_header.get_payload_size()) {
+    payload_out.reserve(m_header.get_payload_size());
+  }
+
+  payload_out.resize(payload_out.capacity());
+  bytes = 0;
+  // TODO bad cast
+  while (static_cast<size_t>(bytes) < m_header.get_payload_size()) {
+    // TODO timeout read in case bad info in header
+    const auto maybe_bytes =
+        m_transport.read(&payload_out[bytes], m_header.get_payload_size() - bytes);
+    if (maybe_bytes.has_value()) {
+      bytes += maybe_bytes.value();
+    }
+    else {
+      return Result::kFail;
+    }
+  }
+  payload_out.resize(static_cast<size_t>(bytes));
+  return Result::kSuccess;
+}
+
+template <typename TTransport, typename THeader, u64 MAX_PAYLOAD_SIZE>
+Result Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>::write(
     const payload_container& payload) {
-  // todo make it possible to break out of loops if bad header
+  const Result res = m_header.build_header(payload.size());
+  if (res == Result::kSuccess) {
 
-  m_header.build_header(payload.size());
+    ssize_t bytes = 0;
+    // TODO make it possible to break out of loops if bad header
+    // TODO bad cast
+    while (static_cast<size_t>(bytes) < m_header.get_header_size()) {
+      const auto maybe_bytes =
+          m_transport.write(m_header.get(), m_header.get_header_size());
+      if (maybe_bytes.has_value()) {
+        bytes += maybe_bytes.value();
+      }
+      else {
+        return Result::kFail;
+      }
+    }
 
-  ssize_t bytes = 0;
-  while (static_cast<size_t>(bytes) < m_header.get_header_size()) {
-    bytes += m_transport.write(m_header.get(), m_header.get_header_size());
+    bytes = 0;
+    // TODO bad cast
+    while (static_cast<size_t>(bytes) < m_header.get_payload_size()) {
+      const auto maybe_bytes =
+          m_transport.write(payload.data(), payload.size());
+      if (maybe_bytes.has_value()) {
+        bytes += maybe_bytes.value();
+      }
+      else {
+        return Result::kFail;
+      }
+    }
   }
-
-  bytes = 0;
-  while (static_cast<size_t>(bytes) < m_header.get_payload_size()) {
-    bytes += m_transport.write(&payload[0], payload.size());
-  }
+  return Result::kSuccess;
 }
 
 template <typename TTransport, typename THeader, u64 MAX_PAYLOAD_SIZE>
-void Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>::write(
+Result Connection<TTransport, THeader, MAX_PAYLOAD_SIZE>::write(
     const u8* payload, size_t payload_size) {
-  // todo make it possible to break out of loops if bad header
+  const Result res = m_header.build_header(payload_size);
+  if (res == Result::kSuccess) {
 
-  m_header.build_header(payload_size);
+    ssize_t bytes = 0;
+    // TODO make it possible to break out of loops if bad header
+    while (bytes < m_header.get_header_size()) {
+      const auto maybe_bytes =
+          m_transport.write(m_header.get(), m_header.get_header_size());
+      if (maybe_bytes.has_value()) {
+        bytes += maybe_bytes.value();
+      }
+      else {
+        return Result::kFail;
+      }
+    }
 
-  ssize_t bytes = 0;
-  while (bytes < m_header.get_header_size()) {
-    bytes += m_transport.write(m_header.get(), m_header.get_header_size());
+    bytes = 0;
+    while (bytes < m_header.get_payload_size()) {
+      const auto maybe_value =
+          m_transport.write(payload, payload_size);
+      if (maybe_value.has_value()) {
+        bytes += maybe_value.value();
+      }
+      else {
+        return Result::kFail;
+      }
+    }
   }
-
-  bytes = 0;
-  while (bytes < m_header.get_payload_size()) {
-    bytes += m_transport.write(payload, payload_size);
-  }
+  return Result::kSuccess;
 }
 
 template <typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
@@ -238,16 +293,20 @@ bool Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::has_error() const {
 }
 
 template <typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
-void Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::start_server(u16 port) {
-  m_transport.start_server(port);
+Result Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::start_server(u16 port) {
+  return m_transport.start_server(port);
 }
 
 template <typename TTransport, typename TPacket, u64 MAX_PAYLOAD_SIZE>
-Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>
+std::optional<Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>>
 Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>::accept() {
-  Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE> client{
-      m_transport.accept()};
-  return client;
+  auto maybe_transport = m_transport.accept();
+  if (maybe_transport.has_value()) {
+    return std::optional<Connection<TTransport, TPacket, MAX_PAYLOAD_SIZE>>{
+      Connection(std::move(maybe_transport.value()))
+    };
+  }
+  return std::nullopt;
 }
 
 }  // namespace dnet

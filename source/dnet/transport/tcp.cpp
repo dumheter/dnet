@@ -23,21 +23,34 @@ Tcp& Tcp::operator=(Tcp&& other) noexcept {
 
 Tcp::Tcp(Socket&& socket) : m_socket(std::move(socket)) {}
 
-void Tcp::start_server(u16 port) const {
-  m_socket.set_reuse_addr(true);
-  m_socket.bind(port);
-  m_socket.listen();
+Result Tcp::start_server(u16 port) {
+  Result res = m_socket.open();
+  if (res == Result::kSuccess) {
+
+    // After closing the program, the port can be left in an occupied state,
+    // setting resue to true allows for instant reuse of that port.
+    res = m_socket.set_reuse_addr(true);
+    if (res == Result::kSuccess) {
+
+      res = m_socket.bind(port);
+      if (res == Result::kSuccess) {
+
+        res = m_socket.listen();
+        if (res == Result::kSuccess) {
+          return Result::kSuccess;
+        }
+      }
+    }
+  }
+  return Result::kFail;
 }
 
-Tcp Tcp::accept() const {
-  auto sock = m_socket.accept();
-  return Tcp(std::move(sock));
+std::optional<Tcp> Tcp::accept() {
+  auto maybe_socket = m_socket.accept();
+  if (maybe_socket.has_value()) {
+    return std::optional<Tcp>{Tcp(std::move(maybe_socket.value()))};
+  }
+  return std::nullopt;
 }
-
-void Tcp::connect(const std::string& ip, u16 port) {
-  m_socket.connect(ip, port);
-}
-
-void Tcp::disconnect() { m_socket.close(); }
 
 }  // namespace dnet

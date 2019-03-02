@@ -28,53 +28,78 @@ fmt::print(__VA_ARGS__)
 #endif
 
 // ============================================================ //
-// Class Definition
+
+void die_on_fail(dnet::Result res, dnet::Connection<dnet::Tcp>& con) {
+  if (res == dnet::Result::kFail) {
+    dprint("failed with error [{}]\n", con.last_error_to_string());
+    abort();
+  }
+}
+
 // ============================================================ //
 
 void serve(std::unique_ptr<dnet::Connection<dnet::Tcp>>&& client)
 {
-  const auto port = client->get_remote_port();
-
-  try {
-      dnet::payload_container payload;
+  const auto maybe_port = client->get_port();
+  if (maybe_port.has_value()) {
+    const u16 port = maybe_port.value();
+    dnet::payload_container payload;
     bool run = true;
+    dnet::Result res;
     while (run) {
-      client->read(payload);
-      dprint("[serve:{0}] [msg:{1}:", port, payload.size());
-      for (auto c : payload) {
-        dprintclean("{0}", static_cast<char>(c));
-      }
-      dprintclean("]\n");
 
-      client->write(payload);
+      res = client->read(payload);
+      if (res == dnet::Result::kSuccess) {
+        dprint("[serve:{}] [msg:{}:", port, payload.size());
+        for (const auto c : payload) {
+          dprintclean("{}", static_cast<char>(c));
+        }
+        dprintclean("]\n");
+
+        res = client->write(payload);
+        if (res != dnet::Result::kSuccess) {
+          dprint("failed to write with error [{}]\n", client->last_error_to_string());
+          client->disconnect();
+          run = false;
+        }
+      }
+      else {
+        dprint("failed to read with error [{}]\n", client->last_error_to_string());
+        client->disconnect();
+        run = false;
+      }
     }
   }
-  catch (const dnet::dnet_exception& e) {
-    dprint("[serve:{0}] connection closed [ex:{1}]\n", port, e.what());
+  else {
+    dprint("failed to get port with error [{}]\n", client->last_error_to_string());
+    client->disconnect();
   }
 }
 
 void run_server(u16 port)
 {
-  try {
-      dnet::Connection<dnet::Tcp> server{};
-    server.start_server(port);
-    dprint("init server @ {}:{}\n", server.get_ip(), server.get_port());
+  dnet::Connection<dnet::Tcp> server{};
 
-    bool run = true;
-    while (run) {
-      dprint("waiting for client\n");
-      auto client = server.accept();
-      dprint("new client from {0}:{1}\n", client.get_remote_ip(), client.get_remote_port());
+  dnet::Result res = server.start_server(port);
+  die_on_fail(res, server);
+  dprint("init server @ {}:{}\n", server.get_ip().value_or("error"), server.get_port().value_or(0));
 
-      auto cli_ptr = std::make_unique<dnet::Connection<dnet::Tcp>>(std::move(client));
+  bool run = true;
+  while (run) {
+    dprint("waiting for client\n");
+    auto maybe_client = server.accept();
+    if (maybe_client.has_value()) {
+      dprint("new client from {}:{}\n", maybe_client.value().get_ip().value_or("error"),
+             maybe_client.value().get_port().value_or(0));
+      auto cli_ptr = std::make_unique<dnet::Connection<dnet::Tcp>>(std::move(maybe_client.value()));
       std::thread t(serve, std::move(cli_ptr));
       t.detach();
     }
+    else {
+      dprint("failed to accept client with error [{}]\n", server.last_error_to_string());
+    }
   }
-  catch (const dnet::dnet_exception& e) {
-    dprint("[ex:{0}]\n", e.what());
-  }
+
 }
 
 // ============================================================ //

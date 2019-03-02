@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include "dnet/util/types.hpp"
+#include "dnet/util/result.hpp"
 
 // ============================================================ //
 // Class Declaration
@@ -14,10 +15,20 @@
 
 namespace dnet {
 
+
+/**
+ * TODO make it Packet_header<TPacketType>, where TPacketType is a
+ * value that will be packed together with size in the Header_meta.
+ * This allows the user of Connection to easily define a custom
+ * protocol for a Connection.
+ *
+ * TODO Packet_header has alot of reinterpret casts, lets not have that.
+ */
+
 class Packet_header {
  public:
   struct Header_meta {
-    u64 size;
+    u32 size;
   };
 
  public:
@@ -35,14 +46,14 @@ class Packet_header {
 
   static constexpr size_t get_header_size() { return sizeof(Header_meta); }
 
-  void build_header(size_t payload_size);
+  Result build_header(size_t payload_size);
 
-  u8* get();
+  u8* get() { return m_header; }
 
-  const u8* get_const();
+  const u8* get_const() const { return m_header; }
 
  private:
-  void set_payload_size(size_t size);
+  Result set_payload_size(size_t size);
 
  private:
   u8* m_header;

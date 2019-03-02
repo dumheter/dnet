@@ -1,5 +1,5 @@
-#ifndef DNET_MACROS_HPP_
-#define DNET_MACROS_HPP_
+#ifndef MACROS_HPP_
+#define MACROS_HPP_
 
 // ============================================================ //
 // Macro Declaration
@@ -28,4 +28,4 @@
 
 // ============================================================ //
 
-#endif  // DNET_MACROS_HPP_
+#endif  // MACROS_HPP_
