@@ -30,6 +30,20 @@ using u64 = uint64_t;
 
 // ============================================================ //
 
+using s8_fast = int_fast8_t;
+using u8_fast = uint_fast8_t;
+
+using s16_fast = int_fast16_t;
+using u16_fast = uint_fast16_t;
+
+using s32_fast = int_fast32_t;
+using u32_fast = uint_fast32_t;
+
+using s64_fast = int_fast64_t;
+using u64_fast = uint_fast64_t;
+
+// ============================================================ //
+
 using f32 = float;
 static_assert(sizeof(f32) == 4, "f32 is not 32-bits large");
 

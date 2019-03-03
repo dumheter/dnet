@@ -18,7 +18,6 @@ endif ()
 
 set(COMMON_SOURCE
   source/dnet/connection.hpp
-  source/dnet/header/packet_header.cpp
   source/dnet/header/packet_header.hpp
   source/dnet/payload/payload.hpp
   source/dnet/socket/socket.cpp

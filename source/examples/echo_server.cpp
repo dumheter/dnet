@@ -45,10 +45,9 @@ void serve(std::unique_ptr<dnet::Connection<dnet::Tcp>>&& client)
     const u16 port = maybe_port.value();
     dnet::payload_container payload;
     bool run = true;
-    dnet::Result res;
     while (run) {
 
-      res = client->read(payload);
+      auto [res, header_data] = client->read(payload);
       if (res == dnet::Result::kSuccess) {
         dprint("[serve:{}] [msg:{}:", port, payload.size());
         for (const auto c : payload) {
@@ -56,7 +55,7 @@ void serve(std::unique_ptr<dnet::Connection<dnet::Tcp>>&& client)
         }
         dprintclean("]\n");
 
-        res = client->write(payload);
+        res = client->write(payload, header_data);
         if (res != dnet::Result::kSuccess) {
           dprint("failed to write with error [{}]\n", client->last_error_to_string());
           client->disconnect();
@@ -99,7 +98,6 @@ void run_server(u16 port)
       dprint("failed to accept client with error [{}]\n", server.last_error_to_string());
     }
   }
-
 }
 
 // ============================================================ //

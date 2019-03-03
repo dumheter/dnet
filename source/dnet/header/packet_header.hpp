@@ -5,9 +5,7 @@
 // Headers
 // ============================================================ //
 
-#include <cstddef>
 #include "dnet/util/types.hpp"
-#include "dnet/util/result.hpp"
 
 // ============================================================ //
 // Class Declaration
@@ -15,48 +13,50 @@
 
 namespace dnet {
 
+/**
+ * You should make you own header data struct.
+ */
+struct Header_data_example {
+  u32 type = 1337;
+};
 
 /**
- * TODO make it Packet_header<TPacketType>, where TPacketType is a
- * value that will be packed together with size in the Header_meta.
- * This allows the user of Connection to easily define a custom
- * protocol for a Connection.
- *
- * TODO Packet_header has alot of reinterpret casts, lets not have that.
+ * @tparam THeaderData Will be put in the header after header size.
  */
-
+template <typename THeaderData>
 class Packet_header {
  public:
-  struct Header_meta {
-    u32 size;
+
+  using Payload_size = u32;
+
+  struct Payload_info {
+    Payload_size payload_size = 0;
+    THeaderData header_data{};
   };
 
- public:
-  Packet_header();
+  Packet_header() = default;
 
-  Packet_header(const Packet_header& other);
-  Packet_header& operator=(const Packet_header& other);
+  explicit Packet_header(Payload_size payload_size, THeaderData header_data)
+      : m_header({payload_size, header_data}) {}
 
-  Packet_header(Packet_header&& other) noexcept;
-  Packet_header& operator=(Packet_header&& other) noexcept;
+  Payload_size get_payload_size() const { return m_header.payload_size; }
 
-  ~Packet_header();
+  void set_payload_size(Payload_size payload_size) {
+    m_header.payload_size = payload_size;
+  }
 
-  size_t get_payload_size() const;
+  THeaderData get_header_data() const { return m_header.header_data; }
 
-  static constexpr size_t get_header_size() { return sizeof(Header_meta); }
+  void set_header_data(THeaderData header_data) { m_header.header_data = header_data; }
 
-  Result build_header(size_t payload_size);
+  static constexpr Payload_size get_header_size() { return sizeof(Payload_info); }
 
-  u8* get() { return m_header; }
+  u8* get() { return reinterpret_cast<u8*>(&m_header); }
 
-  const u8* get_const() const { return m_header; }
-
- private:
-  Result set_payload_size(size_t size);
+  const u8* get_const() const { return reinterpret_cast<const u8*>(&m_header); }
 
  private:
-  u8* m_header;
+  Payload_info m_header;
 };
 
 }  // namespace dnet

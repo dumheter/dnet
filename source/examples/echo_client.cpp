@@ -47,13 +47,14 @@ void echo_client(u16 port, const char* ip) {
   dnet::Result res = client.connect(std::string(ip), port);
   die_on_fail(res, client);
 
-  res = client.write(payload);
+  dnet::Header_data_example header_data{};
+  res = client.write(payload, header_data);
   die_on_fail(res, client);
   dprint("[{}] [wrote:{}]\n", __func__, msg);
 
   payload.clear();
-  res = client.read(payload);
-  die_on_fail(res, client);
+  auto [read_res, header_data_read] = client.read(payload);
+  die_on_fail(read_res, client);
   dprint("[read:{}]\n", std::string(payload.begin(), payload.end()));
 }
 

@@ -5,11 +5,11 @@
 
 namespace dnet {
 
-using ResultUnderlyingType = bool;
+using ResultUnderlyingType = u8_fast;
 enum class Result : ResultUnderlyingType
 {
-  kSuccess = true,
-  kFail = false
+  kSuccess = 0,
+  kFail
 };
 
 }
