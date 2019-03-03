@@ -6,6 +6,7 @@
 #include "dnet/connection.hpp"
 #include "dnet/header/packet_header.hpp"
 #include "dnet/util/util.hpp"
+#include "dnet/util/platform.hpp"
 #include "fmt/format.h"
 #include "argparse.h"
 #include <iostream>
@@ -16,6 +17,7 @@
 // Debug
 #define DNET_DEBUG
 
+// print with fmt, prefixed with both function name and line number.
 #ifdef DNET_DEBUG
 #  define dprint(...)  \
 fmt::print("[server] [{}:{}] ", __func__, __LINE__); \
@@ -29,73 +31,87 @@ fmt::print(__VA_ARGS__)
 
 // ============================================================ //
 
+// hepler function to crash on result fail
 void die_on_fail(dnet::Result res, dnet::Connection<dnet::Tcp>& con) {
   if (res == dnet::Result::kFail) {
     dprint("failed with error [{}]\n", con.last_error_to_string());
-    abort();
+    std::cout << std::endl;  // flush
+    exit(0);
   }
 }
 
 // ============================================================ //
 
-void serve(std::unique_ptr<dnet::Connection<dnet::Tcp>>&& client)
+// when a new client connects, this function will be run on a new thread
+void serve(dnet::Connection<dnet::Tcp> client)
 {
-  const auto maybe_port = client->get_port();
-  if (maybe_port.has_value()) {
-    const u16 port = maybe_port.value();
-    dnet::payload_container payload;
-    bool run = true;
-    while (run) {
-
-      auto [res, header_data] = client->read(payload);
-      if (res == dnet::Result::kSuccess) {
-        dprint("[serve:{}] [msg:{}:", port, payload.size());
-        for (const auto c : payload) {
-          dprintclean("{}", static_cast<char>(c));
-        }
-        dprintclean("]\n");
-
-        res = client->write(payload, header_data);
-        if (res != dnet::Result::kSuccess) {
-          dprint("failed to write with error [{}]\n", client->last_error_to_string());
-          client->disconnect();
-          run = false;
-        }
-      }
-      else {
-        dprint("failed to read with error [{}]\n", client->last_error_to_string());
-        client->disconnect();
-        run = false;
-      }
-    }
+  // get port
+  const auto maybe_port = client.get_port();
+  if (!maybe_port.has_value()) {
+    dprint("failed with error [{}]\n", client.last_error_to_string());
+    return;
   }
-  else {
-    dprint("failed to get port with error [{}]\n", client->last_error_to_string());
-    client->disconnect();
-  }
-}
+  const u16 port = maybe_port.value();
 
-void run_server(u16 port)
-{
-  dnet::Connection<dnet::Tcp> server{};
-
-  dnet::Result res = server.start_server(port);
-  die_on_fail(res, server);
-  dprint("init server @ {}:{}\n", server.get_ip().value_or("error"), server.get_port().value_or(0));
+  dnet::payload_container payload;
 
   bool run = true;
   while (run) {
+
+    // wait for message
+    dprint("[serve:{}] waiting for message\n", port);
+    auto [res, header_data] = client.read(payload);
+    if (res == dnet::Result::kSuccess) {
+      dprint("[serve:{}] read {} bytes: [", port, payload.size());
+      for (const auto c : payload) {
+        dprintclean("{}", static_cast<char>(c));
+      }
+      dprintclean("]\n");
+
+      // echo back the message
+      dprint("echoing back the message\n");
+      res = client.write(payload, header_data);
+      if (res != dnet::Result::kSuccess) {
+        dprint("failed to write with error [{}]\n", client.last_error_to_string());
+        run = false;
+      }
+    }
+    else {
+      dprint("failed to read with error [{}]\n", client.last_error_to_string());
+      run = false;
+    }
+  }
+}
+
+// listen for connections on main thread
+void run_server(u16 port)
+{
+  // start the server
+  dprint("starting server\n");
+  dnet::Connection<dnet::Tcp> server{};
+  dnet::Result res = server.start_server(port);
+  die_on_fail(res, server);
+  dprint("server running @ {}:{}\n", server.get_ip().value_or("error"),
+         server.get_port().value_or(0));
+
+  bool run = true;
+  while (run) {
+
+    // wait for client to connect
     dprint("waiting for client\n");
     auto maybe_client = server.accept();
     if (maybe_client.has_value()) {
-      dprint("new client from {}:{}\n", maybe_client.value().get_ip().value_or("error"),
+      dprint("new client from {}:{}\n",
+             maybe_client.value().get_ip().value_or("error"),
              maybe_client.value().get_port().value_or(0));
-      auto cli_ptr = std::make_unique<dnet::Connection<dnet::Tcp>>(std::move(maybe_client.value()));
-      std::thread t(serve, std::move(cli_ptr));
+
+      // handle the client on a seperate thread
+      std::thread t(serve, std::move(maybe_client.value()));
       t.detach();
     }
     else {
-      dprint("failed to accept client with error [{}]\n", server.last_error_to_string());
+      dprint("failed to accept client with error [{}]\n",
+             server.last_error_to_string());
     }
   }
 }
@@ -129,6 +145,13 @@ int main(int argc, const char** argv)
   dnet::startup();
   run_server(static_cast<u16>(port));
   dnet::shutdown();
+
+  // windows will instantly close the terminal window, prevent that
+#ifdef DNET_PLATFORM_WINDOWS
+  fmt::print("enter any key to exit\n> ");
+  char f;
+  std::cin >> f;
+#endif
 
   return 0;
 }
