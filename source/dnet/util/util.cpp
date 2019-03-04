@@ -2,7 +2,7 @@
 #include <cassert>
 #include "platform.hpp"
 #if !defined(DNET_PLATFORM_WINDOWS)
-# include <sys/resource.h>
+#include <sys/resource.h>
 #endif
 
 namespace dnet {

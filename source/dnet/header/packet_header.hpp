@@ -26,7 +26,6 @@ struct Header_data_example {
 template <typename THeaderData>
 class Packet_header {
  public:
-
   using Payload_size = u32;
 
   struct Payload_info {
@@ -47,9 +46,13 @@ class Packet_header {
 
   THeaderData get_header_data() const { return m_header.header_data; }
 
-  void set_header_data(THeaderData header_data) { m_header.header_data = header_data; }
+  void set_header_data(THeaderData header_data) {
+    m_header.header_data = header_data;
+  }
 
-  static constexpr Payload_size get_header_size() { return sizeof(Payload_info); }
+  static constexpr Payload_size get_header_size() {
+    return sizeof(Payload_info);
+  }
 
   u8* get() { return reinterpret_cast<u8*>(&m_header); }
 

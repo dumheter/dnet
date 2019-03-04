@@ -2,13 +2,13 @@
 #define DNET_ASSERT_HPP_
 
 #include <cstdlib>
-#include <string>
 #include <iostream>
+#include <string>
 
-#define DNET_ASSERT(predicate, message)                                 \
-  if (!(predicate)) {                                                   \
-    std::cerr << "Assertion failed with message [" << message << "].\n";\
-    abort();                                                            \
+#define DNET_ASSERT(predicate, message)                                  \
+  if (!(predicate)) {                                                    \
+    std::cerr << "Assertion failed with message [" << message << "].\n"; \
+    abort();                                                             \
   }
 
 #endif  // DNET_ASSERT_HPP_

@@ -5,12 +5,12 @@
 // Headers
 // ============================================================ //
 
-#include <string>
 #include <optional>
+#include <string>
 #include <tuple>
 #include "dnet/socket/socket.hpp"
-#include "dnet/util/types.hpp"
 #include "dnet/util/result.hpp"
+#include "dnet/util/types.hpp"
 
 // ============================================================ //
 // Class Declaration
@@ -69,13 +69,17 @@ class Tcp {
   /**
    * @return Result of the call, Ip and port of peer.
    */
-  std::tuple<Result, std::string, u16> get_peer() { return m_socket.get_peer(); }
+  std::tuple<Result, std::string, u16> get_peer() {
+    return m_socket.get_peer();
+  }
 
   /**
    * If a Result comes back as kFail, or std::optional as std::nullopt, an
    * error will be set. Use this function to access the error string.
    */
-  std::string last_error_to_string() const { return m_socket.last_error_to_string(); }
+  std::string last_error_to_string() const {
+    return m_socket.last_error_to_string();
+  }
 
  private:
   Socket m_socket;

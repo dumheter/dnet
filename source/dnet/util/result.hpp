@@ -6,12 +6,8 @@
 namespace dnet {
 
 using ResultUnderlyingType = u8_fast;
-enum class Result : ResultUnderlyingType
-{
-  kSuccess = 0,
-  kFail
-};
+enum class Result : ResultUnderlyingType { kSuccess = 0, kFail };
 
-}
+}  // namespace dnet
 
-#endif//RESULT_HPP_
+#endif  // RESULT_HPP_

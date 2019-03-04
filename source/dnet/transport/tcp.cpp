@@ -26,15 +26,12 @@ Tcp::Tcp(Socket&& socket) : m_socket(std::move(socket)) {}
 Result Tcp::start_server(u16 port) {
   Result res = m_socket.open();
   if (res == Result::kSuccess) {
-
     // After closing the program, the port can be left in an occupied state,
     // setting resue to true allows for instant reuse of that port.
     res = m_socket.set_reuse_addr(true);
     if (res == Result::kSuccess) {
-
       res = m_socket.bind(port);
       if (res == Result::kSuccess) {
-
         res = m_socket.listen();
         if (res == Result::kSuccess) {
           return Result::kSuccess;

@@ -5,7 +5,8 @@
 // Platform Detection
 // ============================================================ //
 
-#if defined(_WIN32) || defined(_WIN64) || defined(__MINGW32) || defined(__MINGW64)
+#if defined(_WIN32) || defined(_WIN64) || defined(__MINGW32) || \
+    defined(__MINGW64)
 #define DNET_PLATFORM_WINDOWS
 #elif defined(__linux__)
 #define DNET_PLATFORM_LINUX
