@@ -46,12 +46,12 @@ void die_on_fail(dnet::Result res, dnet::Connection<dnet::Tcp>& con) {
 void serve(dnet::Connection<dnet::Tcp> client)
 {
   // get port
-  const auto maybe_port = client.get_port();
-  if (!maybe_port.has_value()) {
-    dprint("failed with error [{}]\n", client.last_error_to_string());
+  const auto [got_peer, peer_ip, peer_port] = client.get_peer();
+  if (got_peer != dnet::Result::kSuccess) {
+    dprint("failed to get peer address with error [{}]\n",
+           client.last_error_to_string());
     return;
   }
-  const u16 port = maybe_port.value();
 
   dnet::payload_container payload;
 
@@ -59,25 +59,27 @@ void serve(dnet::Connection<dnet::Tcp> client)
   while (run) {
 
     // wait for message
-    dprint("[serve:{}] waiting for message\n", port);
+    dprint("[port:{}] waiting for message\n", peer_port);
     auto [res, header_data] = client.read(payload);
     if (res == dnet::Result::kSuccess) {
-      dprint("[serve:{}] read {} bytes: [", port, payload.size());
+      dprint("[port:{}] read {} bytes: [", peer_port, payload.size());
       for (const auto c : payload) {
         dprintclean("{}", static_cast<char>(c));
       }
       dprintclean("]\n");
 
       // echo back the message
-      dprint("echoing back the message\n");
+      dprint("[port:{}] echoing back the message\n", peer_port);
       res = client.write(payload, header_data);
       if (res != dnet::Result::kSuccess) {
-        dprint("failed to write with error [{}]\n", client.last_error_to_string());
+        dprint("[port:{}] failed to write with error [{}]\n",
+               peer_port, client.last_error_to_string());
         run = false;
       }
     }
     else {
-      dprint("failed to read with error [{}]\n", client.last_error_to_string());
+      dprint("[port:{}] failed to read with error [{}]\n",
+             peer_port, client.last_error_to_string());
       run = false;
     }
   }
@@ -101,13 +103,18 @@ void run_server(u16 port)
     dprint("waiting for client\n");
     auto maybe_client = server.accept();
     if (maybe_client.has_value()) {
-      dprint("new client from {}:{}\n",
-             maybe_client.value().get_ip().value_or("error"),
-             maybe_client.value().get_port().value_or(0));
+      const auto [got_peer, peer_ip, peer_port] = maybe_client.value().get_peer();
+      if (got_peer == dnet::Result::kSuccess) {
+        dprint("new client from {}:{}\n", peer_ip, peer_port);
 
-      // handle the client on a seperate thread
-      std::thread t(serve, std::move(maybe_client.value()));
-      t.detach();
+        // handle the client on a seperate thread
+        std::thread t(serve, std::move(maybe_client.value()));
+        t.detach();
+      }
+      else {
+        dprint("failed to get peer with error [{}]\n",
+               server.last_error_to_string());
+      }
     }
     else {
       dprint("failed to accept client with error [{}]\n",

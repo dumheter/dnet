@@ -10,6 +10,7 @@
 #include "dnet/util/result.hpp"
 #include <optional>
 #include <string>
+#include <tuple>
 
 // ============================================================ //
 // Class Declaration
@@ -83,6 +84,11 @@ class Socket {
    * @return Port, or nullopt on failure.
    */
   std::optional<u16> get_port();
+
+  /**
+   * @return Result of the call, Ip and port of peer.
+   */
+  std::tuple<Result, std::string, u16> get_peer();
 
   Result set_reuse_addr(bool reuse) const;
 

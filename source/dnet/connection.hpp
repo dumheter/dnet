@@ -110,6 +110,12 @@ class Connection {
 
   std::string last_error_to_string() const { return m_transport.last_error_to_string(); }
 
+  /**
+   * Get the address information about the peer which we are connected to.
+   * @return Result of the call, Ip and port of peer.
+   */
+  std::tuple<Result, std::string, u16> get_peer() { return m_transport.get_peer(); }
+
   // ====================================================================== //
   // Data members
   // ====================================================================== //

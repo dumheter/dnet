@@ -7,6 +7,7 @@
 
 #include <string>
 #include <optional>
+#include <tuple>
 #include "dnet/socket/socket.hpp"
 #include "dnet/util/types.hpp"
 #include "dnet/util/result.hpp"
@@ -64,6 +65,11 @@ class Tcp {
   std::optional<std::string> get_ip() { return m_socket.get_ip(); }
 
   std::optional<u16> get_port() { return m_socket.get_port(); }
+
+  /**
+   * @return Result of the call, Ip and port of peer.
+   */
+  std::tuple<Result, std::string, u16> get_peer() { return m_socket.get_peer(); }
 
   /**
    * If a Result comes back as kFail, or std::optional as std::nullopt, an

@@ -150,6 +150,26 @@ std::optional<u16> Socket::get_port() {
   return std::nullopt;
 }
 
+std::tuple<Result, std::string, u16> Socket::get_peer() {
+  chif_net_address addr;
+  auto res = chif_net_get_peer_address(m_socket, &addr);
+  if (res == CHIF_NET_RESULT_SUCCESS) {
+
+    char ip[CHIF_NET_IPVX_STRING_LENGTH];
+    res = chif_net_ip_from_address(&addr, ip, CHIF_NET_IPVX_STRING_LENGTH);
+    if (res == CHIF_NET_RESULT_SUCCESS) {
+
+      chif_net_port port;
+      res = chif_net_port_from_address(&addr, &port);
+      if (res == CHIF_NET_RESULT_SUCCESS) {
+        return std::tuple<Result, std::string, u16>(Result::kSuccess, std::string(ip), port);
+      }
+    }
+  }
+  m_last_error = res;
+  return std::tuple<Result, std::string, u16>(Result::kFail, "", 0);
+}
+
 Result Socket::set_reuse_addr(bool reuse) const {
   const auto res = chif_net_set_reuse_addr(m_socket, reuse);
   return (res == CHIF_NET_RESULT_SUCCESS ?
