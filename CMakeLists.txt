@@ -48,11 +48,14 @@ set(IO_SOURCE
 
 add_executable(echo_server source/examples/echo_server.cpp ${COMMON_SOURCE} ${IO_SOURCE})
 add_executable(echo_client source/examples/echo_client.cpp ${COMMON_SOURCE} ${IO_SOURCE})
+add_executable(custom_header_data source/examples/custom_header_data.cpp ${COMMON_SOURCE} ${IO_SOURCE})
 
 if (WIN32)
   target_link_libraries(echo_server wsock32 ws2_32)
   target_link_libraries(echo_client wsock32 ws2_32)
+  target_link_libraries(custom_header_data wsock32 ws2_32)
 else()
   target_link_libraries(echo_server pthread)
   target_link_libraries(echo_client pthread)
+  target_link_libraries(custom_header_data pthread)
 endif()
