@@ -52,6 +52,8 @@ class Connection {
   Connection(Connection&& other) noexcept;
   Connection& operator=(Connection&& other) noexcept;
 
+  ~Connection() = default;
+
   // ====================================================================== //
   // Client methods
   // ====================================================================== //
@@ -67,9 +69,9 @@ class Connection {
   // TODO implement this
   // void read(u8* payload, size_t payload_size);
 
-  Result write(const payload_container& payload, THeaderData header_data);
+  Result write(const payload_container& payload, THeaderData header_data = Header_data_example{});
   Result write(const u8* payload, typename Header::Payload_size payload_size,
-               THeaderData header_data);
+               THeaderData header_data = Header_data_example{});
 
   /**
    * @return Any error occured while attempting to check, will return false.
