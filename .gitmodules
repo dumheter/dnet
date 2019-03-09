@@ -1,9 +1,9 @@
 [submodule "source/thirdparty/chif_net"]
-	path = source/thirdparty/chif_net
+	path = thirdparty/chif_net
 	url = https://github.com/dumheter/chif_net
 [submodule "source/thirdparty/argparse"]
-	path = source/thirdparty/argparse
+	path = thirdparty/argparse
 	url = https://github.com/dumheter/argparse
 [submodule "source/thirdparty/fmt"]
-	path = source/thirdparty/fmt
+	path = thirdparty/fmt
 	url = https://github.com/fmtlib/fmt

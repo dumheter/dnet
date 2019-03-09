@@ -2,31 +2,48 @@
 Have you been looking for an easy to use networking library for c++17? You've come to the right place!
 
 ## Usage
-basic server:
+minimal working server:
 ```cpp
-// todo
-dnet::Connection<dnet::Tcp, dnet::Packet_header> server;
+dnet::Connection<dnet::Tcp> server{};
+server.start_server(port);
+
+auto maybe_client = server.accept();
+if (maybe_client.has_value()) {
+    auto client = std::move(maybe_client.value());
+
+    // read from client
+    // use "structured binding" to capture variables from tuple
+    dnet::payload_container payload{};
+    auto [result, header] = client.read(payload);
+
+    // do stuff with payload
+    ...
+}
 ```
 
-## Built with JSON in mind
-dnet is perfect to use with nlohmann's json library:
- ```c++
- dnet::Connection<dnet::Tcp, dnet::Packet_header> con;
- fmt::printf("connecting...\n");
- con.connect("127.0.0.1", 1337);
- 
- nlohmann::json msg = {
-   {"fruit",  "apple"},
-   {"number", 8}
- };
- 
- std::vector<u8> packed_msg;
- nlohmann::json::to_cbor(msg, packed_msg);
- fmt::printf("sending json packet:\n%s\n", msg.dump(2));
- con.write(packed_msg);
- 
- fmt::printf("waiting for response\n");
- con.read(packed_msg);
- msg = nlohmann::json::from_cbor(packed_msg);
- fmt::printf("got response:\n%s\n", msg.dump(2));
- ```
+minimal working client:
+```cpp
+dnet::Connection<dnet::Tcp> client{};
+client.connect(ip, port);
+
+dnet::payload_container payload{};
+// fill payload with data
+...
+client.write(payload);
+```
+
+## Custom header
+For now, look at custom_header_data.cpp in examples.
+
+## Dependencies
+dnet uses chif_net which is a cross-platform socket library written in C.
+
+## Windows
+If you target windows, make sure to use:
+```cpp
+// in begining of program
+dnet::startup();
+
+// before ending program
+dnet::shutdown();
+```

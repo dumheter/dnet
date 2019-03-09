@@ -77,8 +77,8 @@ int main(int argc, const char** argv) {
   struct argparse_option options[] = {
       OPT_HELP(),
       OPT_GROUP("Settings"),
-      OPT_INTEGER('p', "port", &port, "port"),
-      OPT_STRING('i', "ip", &ip, "ip address"),
+      OPT_INTEGER('p', "port", &port, "port", NULL, NULL, 0),
+      OPT_STRING('i', "ip", &ip, "ip address", NULL, NULL, 0),
       OPT_END(),
   };
 
