@@ -99,9 +99,11 @@ std::optional<ssize_t> Socket::write(const u8* buf, size_t len) {
 
 void Socket::close() { chif_net_close_socket(&m_socket); }
 
-Result Socket::connect(const std::string& ip, u16 port) {
+Result Socket::connect(const std::string& address, u16 port) {
   chif_net_address addr;
-  auto res = chif_net_create_address(&addr, ip.c_str(), port, m_fam);
+  const std::string portstr = std::to_string(port);
+  auto res = chif_net_lookup_address(&addr, address.c_str(),
+                                           portstr.c_str(), m_fam, m_proto);
   if (res == CHIF_NET_RESULT_SUCCESS) {
     if (m_socket != CHIF_NET_INVALID_SOCKET) {
       chif_net_close_socket(&m_socket);

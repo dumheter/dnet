@@ -58,7 +58,7 @@ class Connection {
   // Client methods
   // ====================================================================== //
 
-  Result connect(const std::string& ip, u16 port);
+  Result connect(const std::string& address, u16 port);
 
   void disconnect();
 
@@ -155,9 +155,9 @@ operator=(Connection<TTransport, THeaderData>&& other) noexcept {
 }
 
 template <typename TTransport, typename THeaderData>
-Result Connection<TTransport, THeaderData>::connect(const std::string& ip,
+Result Connection<TTransport, THeaderData>::connect(const std::string& address,
                                                     u16 port) {
-  return m_transport.connect(ip, port);
+  return m_transport.connect(address, port);
 }
 
 template <typename TTransport, typename THeaderData>

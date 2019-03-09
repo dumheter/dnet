@@ -40,8 +40,8 @@ class Tcp {
    */
   std::optional<Tcp> accept();
 
-  Result connect(const std::string& ip, u16 port) {
-    return m_socket.connect(ip, port);
+  Result connect(const std::string& address, u16 port) {
+    return m_socket.connect(address, port);
   }
 
   void disconnect() { m_socket.close(); }

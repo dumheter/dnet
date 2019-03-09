@@ -58,7 +58,7 @@ class Socket {
 
   void close();
 
-  Result connect(const std::string& ip, u16 port);
+  Result connect(const std::string& address, u16 port);
 
   /**
    * @return Any error occured while attempting to check, will return false.
