@@ -209,15 +209,15 @@ template <typename TTransport, typename THeaderData>
 Result Connection<TTransport, THeaderData>::write(
     const payload_container& payload, THeaderData header_data) {
   const auto payload_size = payload.size();
-  if (payload_size > std::numeric_limits<Header::Payload_size>::max() ||
-      payload_size < std::numeric_limits<Header::Payload_size>::min()) {
+  if (payload_size > std::numeric_limits<typename Header::Payload_size>::max() ||
+      payload_size < std::numeric_limits<typename Header::Payload_size>::min()) {
     // TODO send payloads larger than what can fit in a single packet
     DNET_ASSERT(
-        payload_size > std::numeric_limits<Header::Payload_size>::max() ||
-            payload_size < std::numeric_limits<Header::Payload_size>::min(),
+        payload_size > std::numeric_limits<typename Header::Payload_size>::max() ||
+            payload_size < std::numeric_limits<typename Header::Payload_size>::min(),
         "Cannot fit the payload in the packet");
   }
-  const Header header{static_cast<Header::Payload_size>(payload_size),
+  const Header header{static_cast<typename Header::Payload_size>(payload_size),
                       header_data};
 
   ssize_t bytes = 0;
@@ -252,16 +252,15 @@ template <typename TTransport, typename THeaderData>
 Result Connection<TTransport, THeaderData>::write(
     const u8* payload, typename Header::Payload_size payload_size,
     THeaderData header_data) {
-  const auto payload_size = payload.size();
-  if (payload_size > std::numeric_limits<Header::Payload_size>::max() ||
-      payload_size < std::numeric_limits<Header::Payload_size>::min()) {
+  if (payload_size > std::numeric_limits<typename Header::Payload_size>::max() ||
+      payload_size < std::numeric_limits<typename Header::Payload_size>::min()) {
     // TODO send payloads larger than what can fit in a single packet
     DNET_ASSERT(
-        payload_size > std::numeric_limits<Header::Payload_size>::max() ||
-            payload_size < std::numeric_limits<Header::Payload_size>::min(),
+        payload_size > std::numeric_limits<typename Header::Payload_size>::max() ||
+            payload_size < std::numeric_limits<typename Header::Payload_size>::min(),
         "Cannot fit the payload in the packet");
   }
-  const Header header{static_cast<Header::Payload_size>(payload_size),
+  const Header header{static_cast<typename Header::Payload_size>(payload_size),
                       header_data};
 
   ssize_t bytes = 0;

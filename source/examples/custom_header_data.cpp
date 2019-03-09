@@ -279,9 +279,9 @@ void serve(CustomConnection client, bool& run_server)
           break;
         }
         case Packet_type::kShutdown: {
+          run_server = false;
           run = false;
           client.disconnect();
-          run_server = false;
           break;
         }
       }
@@ -307,30 +307,33 @@ void run_server(u16 port)
   sprint("server running @ {}:{}\n", server.get_ip().value_or("error"),
          server.get_port().value_or(0));
 
+  sprint("waiting for client\n");
   bool run = true;
   while (run) {
 
     // wait for client to connect
-    sprint("waiting for client\n");
-    auto maybe_client = server.accept();
-    if (maybe_client.has_value()) {
-      const auto [got_peer, peer_ip, peer_port] = maybe_client.value().get_peer();
-      if (got_peer == dnet::Result::kSuccess) {
-        sprint("new client from {}:{}\n", peer_ip, peer_port);
+    if (server.can_accept()) {
+      auto maybe_client = server.accept();
+      if (maybe_client.has_value()) {
+        const auto [got_peer, peer_ip, peer_port] = maybe_client.value().get_peer();
+        if (got_peer == dnet::Result::kSuccess) {
+          sprint("new client from {}:{}\n", peer_ip, peer_port);
 
-        // handle the client on a seperate thread
-        std::thread t(serve, std::move(maybe_client.value()), std::ref(run));
-        t.detach();
+          // handle the client on a seperate thread
+          std::thread t(serve, std::move(maybe_client.value()), std::ref(run));
+          t.detach();
+        }
+        else {
+          sprint("failed to get peer with error [{}]\n",
+                 server.last_error_to_string());
+        }
       }
       else {
-        sprint("failed to get peer with error [{}]\n",
+        sprint("failed to accept client with error [{}]\n",
                server.last_error_to_string());
       }
     }
-    else {
-      sprint("failed to accept client with error [{}]\n",
-             server.last_error_to_string());
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
 }
 
@@ -345,11 +348,11 @@ int main(int argc, const char** argv) {
   struct argparse_option options[] = {
       OPT_HELP(),
       OPT_GROUP("Settings"),
-      OPT_INTEGER('p', "port", &port, "port"),
+      OPT_INTEGER('p', "port", &port, "port", NULL, NULL, 0),
       OPT_END(),
   };
 
-  struct argparse argparse;
+  argparse argparse;
   argparse_init(&argparse, options, NULL, 0);
   argparse_describe(&argparse, NULL, NULL);
   argc = argparse_parse(&argparse, argc, argv);
@@ -371,7 +374,6 @@ int main(int argc, const char** argv) {
   cprintln("sleeping for 10 ms to let server start");
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
   client(static_cast<u16>(port), "127.0.0.1");
-  dnet::shutdown();
 
   server_thread.join();
 
@@ -383,6 +385,8 @@ int main(int argc, const char** argv) {
   char f;
   std::cin >> f;
 #endif
+
+  dnet::shutdown();
 
   return 0;
 }
