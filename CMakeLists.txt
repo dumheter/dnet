@@ -6,8 +6,10 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(
   .
   thirdparty/chif_net
-  thirdparty/fmt/include
-  thirdparty/argparse
+
+  # only for examples
+  examples/thirdparty/fmt/include
+  examples/thirdparty/argparse
 )
 
 if (WIN32)
@@ -38,11 +40,11 @@ set(COMMON_SOURCE
   )
 
 set(IO_SOURCE
-  thirdparty/argparse/argparse.c
-  thirdparty/argparse/argparse.h
+  examples/thirdparty/argparse/argparse.c
+  examples/thirdparty/argparse/argparse.h
 
-  thirdparty/fmt/src/format.cc
-  thirdparty/fmt/include/fmt/format.h
+  examples/thirdparty/fmt/src/format.cc
+  examples/thirdparty/fmt/include/fmt/format.h
 
   )
 
