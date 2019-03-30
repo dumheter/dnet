@@ -10,9 +10,9 @@
 #include <string>
 #include <tuple>
 #include <type_traits>
-#include "dnet/header/packet_header.hpp"
-#include "dnet/payload/payload.hpp"
-#include "dnet/transport/tcp.hpp"
+#include "dnet/net/packet_header.hpp"
+#include "dnet/net/payload.hpp"
+#include "dnet/net/tcp.hpp"
 #include "dnet/util/dnet_assert.hpp"
 #include "dnet/util/result.hpp"
 #include "dnet/util/types.hpp"

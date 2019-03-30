@@ -8,7 +8,7 @@
 #include <optional>
 #include <string>
 #include <tuple>
-#include "dnet/socket/socket.hpp"
+#include "dnet/net/socket.hpp"
 #include "dnet/util/result.hpp"
 #include "dnet/util/types.hpp"
 

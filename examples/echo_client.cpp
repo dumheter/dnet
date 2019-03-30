@@ -3,8 +3,8 @@
 // ============================================================ //
 
 #include "dnet/connection.hpp"
-#include "dnet/header/packet_header.hpp"
-#include "dnet/transport/tcp.hpp"
+#include "dnet/net/packet_header.hpp"
+#include "dnet/net/tcp.hpp"
 #include "dnet/util/util.hpp"
 #include "dnet/util/platform.hpp"
 #include "fmt/format.h"

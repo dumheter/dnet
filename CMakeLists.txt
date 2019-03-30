@@ -1,15 +1,13 @@
 cmake_minimum_required(VERSION 3.10)
 project(dnet)
-
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(
   .
   thirdparty/chif_net
-
   # only for examples
-  examples/thirdparty/fmt/include
-  examples/thirdparty/argparse
+  thirdparty/fmt/include
+  thirdparty/argparse
 )
 
 if (WIN32)
@@ -20,14 +18,14 @@ endif ()
 
 set(COMMON_SOURCE
   dnet/connection.hpp
-  dnet/header/packet_header.hpp
-  dnet/payload/payload.hpp
-  dnet/socket/socket.cpp
-  dnet/socket/socket.hpp
-  dnet/transport/tcp.cpp
-  dnet/transport/tcp.hpp
-  dnet/transport/udp.cpp
-  dnet/transport/udp.hpp
+  dnet/net/packet_header.hpp
+  dnet/net/payload.hpp
+  dnet/net/socket.cpp
+  dnet/net/socket.hpp
+  dnet/net/tcp.cpp
+  dnet/net/tcp.hpp
+  dnet/net/udp.cpp
+  dnet/net/udp.hpp
   dnet/util/macros.hpp
   dnet/util/types.hpp
   dnet/util/platform.hpp
@@ -36,17 +34,14 @@ set(COMMON_SOURCE
 
   thirdparty/chif_net/chif_net/chif_net.c
   thirdparty/chif_net/chif_net/chif_net.h
-
   )
 
 set(IO_SOURCE
-  examples/thirdparty/argparse/argparse.c
-  examples/thirdparty/argparse/argparse.h
-
-  examples/thirdparty/fmt/src/format.cc
-  examples/thirdparty/fmt/include/fmt/format.h
-
+  thirdparty/argparse/argparse.c
+  thirdparty/fmt/src/format.cc
   )
+
+add_library(${PROJECT_NAME} STATIC  ${COMMON_SOURCE} ${IO_SOURCE})
 
 add_executable(echo_server examples/echo_server.cpp ${COMMON_SOURCE} ${IO_SOURCE})
 add_executable(echo_client examples/echo_client.cpp ${COMMON_SOURCE} ${IO_SOURCE})

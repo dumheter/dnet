@@ -2,8 +2,8 @@
 	path = thirdparty/chif_net
 	url = https://github.com/dumheter/chif_net
 [submodule "source/thirdparty/argparse"]
-	path = examples/thirdparty/argparse
+	path = thirdparty/argparse
 	url = https://github.com/dumheter/argparse
 [submodule "source/thirdparty/fmt"]
-	path = examples/thirdparty/fmt
+	path = thirdparty/fmt
 	url = https://github.com/fmtlib/fmt
