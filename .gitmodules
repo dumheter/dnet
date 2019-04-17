@@ -7,3 +7,12 @@
 [submodule "source/thirdparty/fmt"]
 	path = thirdparty/fmt
 	url = https://github.com/fmtlib/fmt
+[submodule "thirdparty/doctest"]
+	path = thirdparty/doctest
+	url = https://github.com/onqtam/doctest
+[submodule "thirdparty/dutil"]
+	path = thirdparty/dutil
+	url = https://github.com/dumheter/dutil
+[submodule "thirdparty/dlog"]
+	path = thirdparty/dlog
+	url = https://github.com/dumheter/dlog

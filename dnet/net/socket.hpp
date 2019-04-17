@@ -51,11 +51,15 @@ class Socket {
    */
   std::optional<ssize_t> read(u8* buf_out, size_t buflen);
 
+  std::optional<ssize_t> readfrom(u8* buf_out, size_t buflen,
+                                  const std::string& addr, u16 port);
   /**
    * @return Amount of written bytes, or nullopt on failure.
    */
   std::optional<ssize_t> write(const u8* buf, size_t buflen);
 
+  std::optional<ssize_t> writeto(const u8* buf, size_t len,
+                                 const std::string& addr, u16 port);
   void close();
 
   Result connect(const std::string& address, u16 port);

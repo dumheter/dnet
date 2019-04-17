@@ -87,11 +87,43 @@ std::optional<ssize_t> Socket::read(u8* buf_out, size_t buflen) {
   return std::nullopt;
 }
 
+std::optional<ssize_t> Socket::readfrom(u8* buf_out, size_t buflen,
+                                    const std::string& addr, u16 port) {
+  ssize_t bytes;
+  chif_net_address target_addr;
+  auto res =
+      chif_net_create_address(&target_addr, addr.c_str(), port, m_fam);
+  if (res == CHIF_NET_RESULT_SUCCESS) {
+    res = chif_net_readfrom(m_socket, buf_out, buflen, &bytes, &target_addr);
+    if (res == CHIF_NET_RESULT_SUCCESS) {
+      return std::optional<ssize_t>{bytes};
+    }
+  }
+  m_last_error = res;
+  return std::nullopt;
+}
+
 std::optional<ssize_t> Socket::write(const u8* buf, size_t len) {
   ssize_t bytes;
   const auto res = chif_net_write(m_socket, buf, len, &bytes);
   if (res == CHIF_NET_RESULT_SUCCESS) {
     return std::optional<ssize_t>{bytes};
+  }
+  m_last_error = res;
+  return std::nullopt;
+}
+
+std::optional<ssize_t> Socket::writeto(const u8* buf, size_t len,
+                                       const std::string& addr, u16 port) {
+  ssize_t bytes;
+  chif_net_address target_addr;
+  auto res =
+      chif_net_create_address(&target_addr, addr.c_str(), port, m_fam);
+  if (res == CHIF_NET_RESULT_SUCCESS) {
+    res = chif_net_writeto(m_socket, buf, len, &bytes, &target_addr);
+    if (res == CHIF_NET_RESULT_SUCCESS) {
+      return std::optional<ssize_t>{bytes};
+    }
   }
   m_last_error = res;
   return std::nullopt;
