@@ -2,16 +2,17 @@
 // Headers
 // ============================================================ //
 
-#include "dnet/connection.hpp"
-#include "dnet/net/tcp.hpp"
-#include "dnet/net/packet_header.hpp"
-#include "dnet/util/util.hpp"
-#include "dnet/util/platform.hpp"
-#include "fmt/format.h"
-#include "argparse.h"
+#include <dnet/connection.hpp>
+#include <dnet/net/tcp.hpp>
+#include <dnet/net/packet_header.hpp>
+#include <dnet/util/util.hpp>
+#include <dnet/util/platform.hpp>
+#include <fmt/format.h>
+#include <argparse.h>
 #include <iostream>
 #include <thread>
 #include <memory>
+#include <vector>
 
 // ============================================================ //
 // Debug
@@ -31,8 +32,12 @@ fmt::print(__VA_ARGS__)
 
 // ============================================================ //
 
+using EchoConnection = dnet::Connection<std::vector<u8>, dnet::Tcp>;
+
+// ============================================================ //
+
 // hepler function to crash on result fail
-void die_on_fail(dnet::Result res, dnet::Connection<dnet::Tcp>& con) {
+void die_on_fail(dnet::Result res, EchoConnection& con) {
   if (res == dnet::Result::kFail) {
     dprint("failed with error [{}]\n", con.last_error_to_string());
     std::cout << std::endl;  // flush
@@ -43,7 +48,7 @@ void die_on_fail(dnet::Result res, dnet::Connection<dnet::Tcp>& con) {
 // ============================================================ //
 
 // when a new client connects, this function will be run on a new thread
-void serve(dnet::Connection<dnet::Tcp> client)
+void serve(EchoConnection client)
 {
   // get port
   const auto [got_peer, peer_ip, peer_port] = client.get_peer();
@@ -53,7 +58,7 @@ void serve(dnet::Connection<dnet::Tcp> client)
     return;
   }
 
-  dnet::payload_container payload;
+  std::vector<u8> payload;
 
   bool run = true;
   while (run) {
@@ -70,7 +75,7 @@ void serve(dnet::Connection<dnet::Tcp> client)
 
       // echo back the message
       dprint("[port:{}] echoing back the message\n", peer_port);
-      res = client.write(payload, header_data);
+      res = client.write(header_data, payload);
       if (res != dnet::Result::kSuccess) {
         dprint("[port:{}] failed to write with error [{}]\n",
                peer_port, client.last_error_to_string());
@@ -90,7 +95,7 @@ void run_server(u16 port)
 {
   // start the server
   dprint("starting server\n");
-  dnet::Connection<dnet::Tcp> server{};
+  EchoConnection server{};
   dnet::Result res = server.start_server(port);
   die_on_fail(res, server);
   dprint("server running @ {}:{}\n", server.get_ip().value_or("error"),

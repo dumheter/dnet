@@ -21,7 +21,6 @@ endif ()
 set(COMMON_SOURCE
   dnet/connection.hpp
   dnet/net/packet_header.hpp
-  dnet/net/payload.hpp
   dnet/net/socket.cpp
   dnet/net/socket.hpp
   dnet/net/tcp.cpp
@@ -38,23 +37,25 @@ set(COMMON_SOURCE
   thirdparty/chif_net/chif_net/chif_net.h
   )
 
-set(TEST_SOURCE
+set(IO_SOURCE
   thirdparty/argparse/argparse.c
   thirdparty/fmt/src/format.cc
   )
+
 aux_source_directory(thirdparty/dutil TEST_SOURCE)
 aux_source_directory(thirdparty/dlog TEST_SOURCE)
 aux_source_directory(test TEST_SOURCE)
 
 add_library(${PROJECT_NAME} STATIC  ${COMMON_SOURCE})
 
-add_executable(echo_server examples/echo_server.cpp ${COMMON_SOURCE} ${TEST_SOURCE})
-add_executable(echo_client examples/echo_client.cpp ${COMMON_SOURCE} ${TEST_SOURCE})
-add_executable(custom_header_data examples/custom_header_data.cpp ${COMMON_SOURCE} ${TEST_SOURCE})
+add_executable(echo_server examples/echo_server.cpp ${COMMON_SOURCE}
+  ${IO_SOURCE})
+add_executable(echo_client examples/echo_client.cpp ${COMMON_SOURCE}
+  ${IO_SOURCE})
+add_executable(custom_header_data examples/custom_header_data.cpp
+  ${COMMON_SOURCE} ${IO_SOURCE})
 
-aux_source_directory(test TEST_SRCS)
-
-add_executable(test ${TEST_SOURCE} ${COMMON_SOURCE})
+add_executable(test ${TEST_SOURCE} ${IO_SOURCE} ${COMMON_SOURCE})
 
 if (WIN32)
   target_link_libraries(echo_server ws2_32)

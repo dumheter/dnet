@@ -1,7 +1,10 @@
 #include "doctest.h"
 #include <dnet/connection.hpp>
+#include <dnet/net/udp.hpp>
+#include <dnet/util/types.hpp>
 #include <dutil/stopwatch.hpp>
 #include <dlog/dlog.hpp>
+#include <vector>
 #include <thread>
 
 // ============================================================ //
@@ -48,7 +51,7 @@ std::string HeaderDataToString(const TestHeaderData& header_data) {
   return str;
 }
 
-using TestConnection = dnet::Connection<dnet::Udp, TestHeaderData>;
+using TestConnection = dnet::Connection<std::vector<u8>, dnet::Udp, TestHeaderData>;
 
 // ============================================================ //
 
@@ -57,7 +60,7 @@ void RunServer(const u16 port, bool& run) {
   dnet::Result res = con.start_server(port);
   CHECK(res == dnet::Result::kSuccess);
 
-  dnet::payload_container payload{};
+  std::vector<u8> payload{};
   payload.reserve(2048);
 
   int packets = 0;
@@ -96,33 +99,33 @@ void RunClient(const u16 port, bool& run) {
   // send a one packet
   {
     const std::string str{"hey from client"};
-    dnet::payload_container payload{str.begin(), str.end()};
+    std::vector<u8> payload{str.begin(), str.end()};
     TestHeaderData header_data{};
     header_data.type = PacketType::kOne;
     header_data.some_number = 5;
-    res = con.write(payload, header_data);
+    res = con.write(header_data, payload);
     CHECK(res == dnet::Result::kSuccess);
   }
 
   // send a two packet
   {
     const std::string str{"second packet"};
-    dnet::payload_container payload{str.begin(), str.end()};
+    std::vector<u8> payload{str.begin(), str.end()};
     TestHeaderData header_data{};
     header_data.type = PacketType::kTwo;
     header_data.some_number = 1337;
-    res = con.write(payload, header_data);
+    res = con.write(header_data, payload);
     CHECK(res == dnet::Result::kSuccess);
   }
 
   // send a three packet
   {
     const std::string str{"last packet, you should stop running"};
-    dnet::payload_container payload{str.begin(), str.end()};
+    std::vector<u8> payload{str.begin(), str.end()};
     TestHeaderData header_data{};
     header_data.type = PacketType::kThree;
     header_data.some_number = 0;
-    res = con.write(payload, header_data);
+    res = con.write(header_data, payload);
     CHECK(res == dnet::Result::kSuccess);
   }
 

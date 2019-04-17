@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <mutex>
+#include <vector>
 
 // ============================================================ //
 // Print to console, real nice
@@ -89,7 +90,7 @@ struct Custom_header_data
 };
 
 
-using CustomConnection = dnet::Connection<dnet::Tcp, Custom_header_data>;
+using CustomConnection = dnet::Connection<std::vector<u8>, dnet::Tcp, Custom_header_data>;
 
 std::string packet_type_to_string(Packet_type type) {
   std::string str;
@@ -150,14 +151,14 @@ void client(u16 port, const char* ip) {
 
   // sent handshake with empty payload
   {
-    dnet::payload_container payload{};
+    std::vector<u8> payload{};
     Custom_header_data header_data{};
     header_data.type = Packet_type::kHandshake;
     header_data.id = 1337; // why not
 
     // send the data
     cprintln("writing handshake");
-    res = client.write(payload, header_data);
+    res = client.write(header_data, payload);
     die_on_fail(res, client);
     cprintln("wrote [{}|]", header_data_to_string(header_data));
   }
@@ -166,21 +167,21 @@ void client(u16 port, const char* ip) {
   {
     // prepare payload and header
     std::string msg("Hey there, from the client.");
-    dnet::payload_container payload{msg.begin(), msg.end()};
+    std::vector<u8> payload{msg.begin(), msg.end()};
     Custom_header_data header_data{};
     header_data.type = Packet_type::kPing;
     header_data.id = 55;
 
     // send the data
     cprintln("writing data");
-    res = client.write(payload, header_data);
+    res = client.write(header_data, payload);
     die_on_fail(res, client);
     cprintln("wrote [{}|{}]", header_data_to_string(header_data), msg);
   }
 
   // wait for echo response - pong
   {
-    dnet::payload_container payload{};
+    std::vector<u8> payload{};
     cprint("waiting for response\n");
     auto [read_res, header_data] = client.read(payload);
     die_on_fail(read_res, client);
@@ -191,14 +192,14 @@ void client(u16 port, const char* ip) {
   // send shutdown request to server
   {
     // prepare payload and header
-    dnet::payload_container payload{};
+    std::vector<u8> payload{};
     Custom_header_data header_data{};
     header_data.type = Packet_type::kShutdown;
     header_data.id = 0;
 
     // send the data
     cprintln("writing data");
-    res = client.write(payload, header_data);
+    res = client.write(header_data, payload);
     die_on_fail(res, client);
     cprintln("wrote [{}|]", header_data_to_string(header_data));
   }
@@ -221,7 +222,7 @@ void serve(CustomConnection client, bool& run_server)
     return;
   }
 
-  dnet::payload_container payload;
+  std::vector<u8> payload;
   bool run = true;
 
   // wait for handshake packet
@@ -266,7 +267,7 @@ void serve(CustomConnection client, bool& run_server)
           header_data_pong.id = 0;
 
           sprintln("[port:{}] echoing back the message", peer_port);
-          res = client.write(payload, header_data_pong);
+          res = client.write(header_data_pong, payload);
           if (res != dnet::Result::kSuccess) {
             sprint("[port:{}] failed to write with error [{}]\n",
                    peer_port, client.last_error_to_string());

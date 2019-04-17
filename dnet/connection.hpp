@@ -31,9 +31,6 @@
 #include <tuple>
 #include <type_traits>
 #include <dnet/net/packet_header.hpp>
-#include <dnet/net/payload.hpp>
-#include <dnet/net/tcp.hpp>
-#include <dnet/net/udp.hpp>
 #include <dnet/util/dnet_assert.hpp>
 #include <dnet/util/result.hpp>
 #include <dnet/util/types.hpp>
@@ -42,11 +39,12 @@ namespace dnet {
 
 /**
  * TODO Make payload container be part of the template?
+ * @tparam TVector A container that has the functionality of std::vector<u8>.
  * @tparam TTransport
  * @tparam THeaderData Provide your own data in the header! Note, packet size is
  * handled internally.
  */
-template <typename TTransport = Tcp, typename THeaderData = Header_data_example>
+template <typename TVector, typename TTransport, typename THeaderData = Header_data_example>
 class Connection {
  public:
   static_assert(std::is_standard_layout<THeaderData>::value,
@@ -79,16 +77,14 @@ class Connection {
 
   void disconnect();
 
-  std::tuple<Result, THeaderData> read(payload_container& payload_out);
-
-  // std::optional<payload_container> read();
+  std::tuple<Result, THeaderData> read(TVector& payload_out);
 
   // TODO implement this
   // void read(u8* payload, size_t payload_size);
 
-  Result write(const payload_container& payload, THeaderData header_data = Header_data_example{});
-  Result write(const u8* payload, typename Header::Payload_size payload_size,
-               THeaderData header_data = Header_data_example{});
+  Result write(const THeaderData& header_data, const TVector& payload);
+  Result write(const THeaderData& header_data, const u8* payload,
+               typename Header::Payload_size payload_size);
 
   /**
    * @return Any error occured while attempting to check, will return false.
@@ -150,42 +146,42 @@ class Connection {
 // template definition
 // ====================================================================== //
 
-template <typename TTransport, typename THeaderData>
-Connection<TTransport, THeaderData>::Connection() : m_transport() {}
+template <typename TVector, typename TTransport, typename THeaderData>
+Connection<TVector, TTransport, THeaderData>::Connection() : m_transport() {}
 
-template <typename TTransport, typename THeaderData>
-Connection<TTransport, THeaderData>::Connection(TTransport&& transport)
+template <typename TVector, typename TTransport, typename THeaderData>
+Connection<TVector, TTransport, THeaderData>::Connection(TTransport&& transport)
     : m_transport(std::move(transport)) {}
 
-template <typename TTransport, typename THeaderData>
-Connection<TTransport, THeaderData>::Connection(
-    Connection<TTransport, THeaderData>&& other) noexcept
+template <typename TVector, typename TTransport, typename THeaderData>
+Connection<TVector, TTransport, THeaderData>::Connection(
+    Connection<TVector, TTransport, THeaderData>&& other) noexcept
     : m_transport(std::move(other.m_transport)) {}
 
-template <typename TTransport, typename THeaderData>
-Connection<TTransport, THeaderData>& Connection<TTransport, THeaderData>::
-operator=(Connection<TTransport, THeaderData>&& other) noexcept {
+template <typename TVector, typename TTransport, typename THeaderData>
+Connection<TVector, TTransport, THeaderData>& Connection<TVector, TTransport, THeaderData>::
+operator=(Connection<TVector, TTransport, THeaderData>&& other) noexcept {
   if (&other != this) {
     m_transport = std::move(other.m_transport);
   }
   return *this;
 }
 
-template <typename TTransport, typename THeaderData>
-Result Connection<TTransport, THeaderData>::connect(const std::string& address,
+template <typename TVector, typename TTransport, typename THeaderData>
+Result Connection<TVector, TTransport, THeaderData>::connect(const std::string& address,
                                                     u16 port) {
   return m_transport.connect(address, port);
 }
 
-template <typename TTransport, typename THeaderData>
-void Connection<TTransport, THeaderData>::disconnect() {
+template <typename TVector, typename TTransport, typename THeaderData>
+void Connection<TVector, TTransport, THeaderData>::disconnect() {
   m_transport.disconnect();
 }
 
 // TODO go over the types used
-template <typename TTransport, typename THeaderData>
-std::tuple<Result, THeaderData> Connection<TTransport, THeaderData>::read(
-    payload_container& payload_out) {
+template <typename TVector, typename TTransport, typename THeaderData>
+std::tuple<Result, THeaderData> Connection<TVector, TTransport, THeaderData>::read(
+    TVector& payload_out) {
   Header header{};
   ssize_t bytes = 0;
   // TODO make it possible to break out of loops if bad header
@@ -222,9 +218,9 @@ std::tuple<Result, THeaderData> Connection<TTransport, THeaderData>::read(
                                               header.get_header_data());
 }
 
-template <typename TTransport, typename THeaderData>
-Result Connection<TTransport, THeaderData>::write(
-    const payload_container& payload, THeaderData header_data) {
+template <typename TVector, typename TTransport, typename THeaderData>
+Result Connection<TVector, TTransport, THeaderData>::write(
+    const THeaderData& header_data, const TVector& payload) {
   const auto payload_size = payload.size();
   if (payload_size > std::numeric_limits<typename Header::Payload_size>::max() ||
       payload_size < std::numeric_limits<typename Header::Payload_size>::min()) {
@@ -265,10 +261,10 @@ Result Connection<TTransport, THeaderData>::write(
   return Result::kSuccess;
 }
 
-template <typename TTransport, typename THeaderData>
-Result Connection<TTransport, THeaderData>::write(
-    const u8* payload, typename Header::Payload_size payload_size,
-    THeaderData header_data) {
+template <typename TVector, typename TTransport, typename THeaderData>
+Result Connection<TVector, TTransport, THeaderData>::write(
+    const THeaderData& header_data, const u8* payload,
+    typename Header::Payload_size payload_size) {
   if (payload_size > std::numeric_limits<typename Header::Payload_size>::max() ||
       payload_size < std::numeric_limits<typename Header::Payload_size>::min()) {
     // TODO send payloads larger than what can fit in a single packet
@@ -306,37 +302,37 @@ Result Connection<TTransport, THeaderData>::write(
   return Result::kSuccess;
 }
 
-template <typename TTransport, typename THeaderData>
-bool Connection<TTransport, THeaderData>::can_read() const {
+template <typename TVector, typename TTransport, typename THeaderData>
+bool Connection<TVector, TTransport, THeaderData>::can_read() const {
   return m_transport.can_read();
 }
 
-template <typename TTransport, typename THeaderData>
-bool Connection<TTransport, THeaderData>::can_write() const {
+template <typename TVector, typename TTransport, typename THeaderData>
+bool Connection<TVector, TTransport, THeaderData>::can_write() const {
   return m_transport.can_write();
 }
 
-template <typename TTransport, typename THeaderData>
-bool Connection<TTransport, THeaderData>::can_accept() const {
+template <typename TVector, typename TTransport, typename THeaderData>
+bool Connection<TVector, TTransport, THeaderData>::can_accept() const {
   return m_transport.can_accept();
 }
 
-template <typename TTransport, typename THeaderData>
-bool Connection<TTransport, THeaderData>::has_error() const {
+template <typename TVector, typename TTransport, typename THeaderData>
+bool Connection<TVector, TTransport, THeaderData>::has_error() const {
   return m_transport.has_error();
 }
 
-template <typename TTransport, typename THeaderData>
-Result Connection<TTransport, THeaderData>::start_server(u16 port) {
+template <typename TVector, typename TTransport, typename THeaderData>
+Result Connection<TVector, TTransport, THeaderData>::start_server(u16 port) {
   return m_transport.start_server(port);
 }
 
-template <typename TTransport, typename THeaderData>
-std::optional<Connection<TTransport, THeaderData>>
-Connection<TTransport, THeaderData>::accept() {
+template <typename TVector, typename TTransport, typename THeaderData>
+std::optional<Connection<TVector, TTransport, THeaderData>>
+Connection<TVector, TTransport, THeaderData>::accept() {
   auto maybe_transport = m_transport.accept();
   if (maybe_transport.has_value()) {
-    return std::optional<Connection<TTransport, THeaderData>>{
+    return std::optional<Connection<TVector, TTransport, THeaderData>>{
         Connection(std::move(maybe_transport.value()))};
   }
   return std::nullopt;
