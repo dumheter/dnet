@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(dnet)
 set(CMAKE_CXX_STANDARD 17)
 
+
 include_directories(
   .
   thirdparty/chif_net
@@ -12,11 +13,13 @@ include_directories(
   thirdparty#/dutil & /dlog
 )
 
+
 if (WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 else ()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
 endif ()
+
 
 set(COMMON_SOURCE
   dnet/connection.hpp
@@ -32,10 +35,8 @@ set(COMMON_SOURCE
   dnet/util/platform.hpp
   dnet/util/util.hpp
   dnet/util/util.cpp
-
-  thirdparty/chif_net/chif_net/chif_net.c
-  thirdparty/chif_net/chif_net/chif_net.h
   )
+aux_source_directory(thirdparty/chif_net/chif_net COMMON_SOURCE)
 
 set(IO_SOURCE
   thirdparty/argparse/argparse.c
@@ -45,6 +46,7 @@ set(IO_SOURCE
 aux_source_directory(thirdparty/dutil TEST_SOURCE)
 aux_source_directory(thirdparty/dlog TEST_SOURCE)
 aux_source_directory(test TEST_SOURCE)
+
 
 add_library(${PROJECT_NAME} STATIC  ${COMMON_SOURCE})
 
@@ -56,6 +58,7 @@ add_executable(custom_header_data examples/custom_header_data.cpp
   ${COMMON_SOURCE} ${IO_SOURCE})
 
 add_executable(test ${TEST_SOURCE} ${IO_SOURCE} ${COMMON_SOURCE})
+
 
 if (WIN32)
   target_link_libraries(echo_server ws2_32)

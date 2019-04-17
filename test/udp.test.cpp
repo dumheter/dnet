@@ -1,4 +1,4 @@
-#include "doctest.h"
+#include <doctest.h>
 #include <dnet/connection.hpp>
 #include <dnet/net/udp.hpp>
 #include <dnet/util/types.hpp>
@@ -55,7 +55,7 @@ using TestConnection = dnet::Connection<std::vector<u8>, dnet::Udp, TestHeaderDa
 
 // ============================================================ //
 
-void RunServer(const u16 port, bool& run) {
+static void RunServer(const u16 port, bool& run) {
   TestConnection con{};
   dnet::Result res = con.start_server(port);
   CHECK(res == dnet::Result::kSuccess);
@@ -88,7 +88,7 @@ void RunServer(const u16 port, bool& run) {
   CHECK(packets == 3);
 }
 
-void RunClient(const u16 port, bool& run) {
+static void RunClient(const u16 port, bool& run) {
   // allow for the server to start
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
@@ -151,7 +151,7 @@ TEST_CASE("udp basics") {
 
   dutil::Stopwatch stopwatch{};
   stopwatch.start();
-  constexpr long timeout_ms = 5000;
+  constexpr long timeout_ms = 2000;
   bool did_timeout = false;
   while (run_server || run_client) {
     if (stopwatch.now_ms() > timeout_ms) {
