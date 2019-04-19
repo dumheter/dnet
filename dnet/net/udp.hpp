@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -25,13 +25,12 @@
 #ifndef UDP_HPP_
 #define UDP_HPP_
 
-#include <optional>
-#include <string>
-#include <tuple>
 #include <dnet/net/socket.hpp>
 #include <dnet/util/result.hpp>
 #include <dnet/util/types.hpp>
-
+#include <optional>
+#include <string>
+#include <tuple>
 
 namespace dnet {
 
@@ -53,7 +52,7 @@ class Udp {
   Result StartServer(u16 port);
 
   // TODO
-  //std::optional<Udp> Accept() {};
+  // std::optional<Udp> Accept() {};
 
   Result Connect(const std::string& address, u16 port) {
     return socket_.Connect(address, port);
@@ -74,7 +73,7 @@ class Udp {
   bool CanRead() const { return socket_.CanRead(); }
 
   // TODO
-  //bool CanAccept() const { return socket_.CanRead(); }
+  // bool CanAccept() const { return socket_.CanRead(); }
 
   bool HasError() const { return socket_.HasError(); }
 
@@ -92,9 +91,7 @@ class Udp {
    * If a Result comes back as kFail, or std::optional as std::nullopt, an
    * error will be set. Use this function to access the error string.
    */
-  std::string LastErrorToString() const {
-    return socket_.LastErrorToString();
-  }
+  std::string LastErrorToString() const { return socket_.LastErrorToString(); }
 
   Result SetBlocking(bool blocking) const {
     return socket_.SetBlocking(blocking);
@@ -104,6 +101,6 @@ class Udp {
   Socket socket_;
 };
 
-}
+}  // namespace dnet
 
 #endif  // UDP_HPP_

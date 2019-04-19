@@ -1,38 +1,31 @@
+#include <argparse.h>
+#include <fmt/format.h>
+#include <cstdlib>
+#include <dlog/dlog.hpp>
 #include <dnet/connection.hpp>
 #include <dnet/net/packet_header.hpp>
 #include <dnet/net/tcp.hpp>
-#include <dnet/util/util.hpp>
 #include <dnet/util/platform.hpp>
-#include <dlog/dlog.hpp>
-#include <fmt/format.h>
-#include <argparse.h>
-#include <thread>
-#include <string>
-#include <cstdlib>
+#include <dnet/util/util.hpp>
 #include <iostream>
 #include <mutex>
+#include <string>
+#include <thread>
 #include <vector>
 
 // ============================================================ //
 // Define our custom header data
 // ============================================================ //
 
-enum class PacketType : u8
-{
-  kHandshake = 0,
-  kPing,
-  kPong,
-  kShutdown
-};
+enum class PacketType : u8 { kHandshake = 0, kPing, kPong, kShutdown };
 
-struct CustomHeaderData
-{
+struct CustomHeaderData {
   PacketType type;
   u32 id;
 };
 
-
-using CustomConnection = dnet::Connection<std::vector<u8>, dnet::Tcp, CustomHeaderData>;
+using CustomConnection =
+    dnet::Connection<std::vector<u8>, dnet::Tcp, CustomHeaderData>;
 
 std::string PacketTypeToString(const PacketType type) {
   std::string str;
@@ -84,8 +77,7 @@ void DieOnFail(const dnet::Result res, CustomConnection& con) {
 // ============================================================ //
 
 void Client(const u16 port, const char* ip) {
-
-  //connect to the server
+  // connect to the server
   dlog::tinfo("client", "connecting to {}:{}", ip, port);
   CustomConnection client{};
   dnet::Result res = client.Connect(std::string(ip), port);
@@ -97,7 +89,7 @@ void Client(const u16 port, const char* ip) {
     std::vector<u8> payload{};
     CustomHeaderData header_data{};
     header_data.type = PacketType::kHandshake;
-    header_data.id = 1337; // why not
+    header_data.id = 1337;  // why not
 
     // send the data
     dlog::tinfo("client", "writing handshake");
@@ -119,7 +111,8 @@ void Client(const u16 port, const char* ip) {
     dlog::tinfo("client", "writing data");
     res = client.Write(header_data, payload);
     DieOnFail(res, client);
-    dlog::tinfo("client", "wrote [{}|{}]", HeaderDataToString(header_data), msg);
+    dlog::tinfo("client", "wrote [{}|{}]", HeaderDataToString(header_data),
+                msg);
   }
 
   // wait for echo response - pong
@@ -129,7 +122,7 @@ void Client(const u16 port, const char* ip) {
     auto [read_res, header_data] = client.Read(payload);
     DieOnFail(read_res, client);
     dlog::tinfo("client", "read [{}|{}]", HeaderDataToString(header_data),
-             std::string(payload.begin(), payload.end()));
+                std::string(payload.begin(), payload.end()));
   }
 
   // send shutdown request to server
@@ -155,13 +148,12 @@ void Client(const u16 port, const char* ip) {
 // ============================================================ //
 
 // when a new client connects, this function will be run on a new thread
-void Serve(CustomConnection client, bool& run_server)
-{
+void Serve(CustomConnection client, bool& run_server) {
   // get port
   const auto [got_peer, peer_ip, peer_port] = client.GetPeer();
   if (got_peer != dnet::Result::kSuccess) {
     dlog::terror("serve", "failed to get peer address with error [{}]",
-             client.LastErrorToString());
+                 client.LastErrorToString());
     return;
   }
 
@@ -174,34 +166,31 @@ void Serve(CustomConnection client, bool& run_server)
     auto [res, header_data] = client.Read(payload);
     if (res == dnet::Result::kSuccess &&
         header_data.type == PacketType::kHandshake) {
-      dlog::tinfo("client", "[port:{}] read [{}|{}] - handshake success", peer_port,
-               HeaderDataToString(header_data),
-               std::string(payload.begin(), payload.end()));
-    }
-    else {
+      dlog::tinfo("client", "[port:{}] read [{}|{}] - handshake success",
+                  peer_port, HeaderDataToString(header_data),
+                  std::string(payload.begin(), payload.end()));
+    } else {
       dlog::twarning("serve", "failed to read handshake, closing client");
       client.Disconnect();
       run = false;
     }
   }
 
-
   while (run) {
-
     // wait for packet
     dlog::tinfo("serve", "[port:{}] waiting for packet", peer_port);
     auto [res, header_data] = client.Read(payload);
     if (res == dnet::Result::kSuccess) {
-
       // print packet
       dlog::tinfo("serve", "[port:{}] read [{}|{}]", peer_port,
-               HeaderDataToString(header_data),
-               std::string(payload.begin(), payload.end()));
+                  HeaderDataToString(header_data),
+                  std::string(payload.begin(), payload.end()));
 
       // respond depending on packet type
       switch (header_data.type) {
         case PacketType::kHandshake: {
-          dlog::tinfo("serve", "[port:{}] handshake noop at this point", peer_port);
+          dlog::tinfo("serve", "[port:{}] handshake noop at this point",
+                      peer_port);
           break;
         }
         case PacketType::kPing: {
@@ -213,8 +202,7 @@ void Serve(CustomConnection client, bool& run_server)
           res = client.Write(header_data_pong, payload);
           if (res != dnet::Result::kSuccess) {
             dlog::tinfo("serve", "[port:{}] failed to write with error [{}]",
-                   peer_port,
-                   client.LastErrorToString());
+                        peer_port, client.LastErrorToString());
             run = false;
           }
           break;
@@ -231,32 +219,27 @@ void Serve(CustomConnection client, bool& run_server)
         }
       }
 
-
-    }
-    else {
+    } else {
       dlog::twarning("server", "[port:{}] failed to read with error [{}]\n",
-             peer_port,
-             client.LastErrorToString());
+                     peer_port, client.LastErrorToString());
       run = false;
     }
   }
 }
 
 // listen for connections on main thread
-void RunServer(const u16 port)
-{
+void RunServer(const u16 port) {
   // start the server
   dlog::tinfo("server", "starting server");
   CustomConnection server{};
   dnet::Result res = server.StartServer(port);
   DieOnFail(res, server);
-  dlog::tinfo("server", "server running @ {}:{}\n", server.GetIp().value_or("error"),
-         server.GetPort().value_or(0));
+  dlog::tinfo("server", "server running @ {}:{}\n",
+              server.GetIp().value_or("error"), server.GetPort().value_or(0));
 
   dlog::tinfo("server", "waiting for client\n");
   bool run = true;
   while (run) {
-
     // wait for client to connect
     if (server.CanAccept()) {
       auto maybe_client = server.Accept();
@@ -269,21 +252,18 @@ void RunServer(const u16 port)
           // handle the client on a seperate thread
           std::thread t(Serve, std::move(maybe_client.value()), std::ref(run));
           t.detach();
-        }
-        else {
+        } else {
           dlog::tinfo("server", "failed to get peer with error [{}]\n",
-                 server.LastErrorToString());
+                      server.LastErrorToString());
         }
-      }
-      else {
+      } else {
         dlog::tinfo("server", "failed to accept client with error [{}]\n",
-               server.LastErrorToString());
+                    server.LastErrorToString());
       }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
 }
-
 
 // ============================================================ //
 // Main
@@ -309,7 +289,8 @@ int main(int argc, const char** argv) {
   if (port < std::numeric_limits<u16>::min() ||
       port > std::numeric_limits<u16>::max()) {
     dlog::tinfo("main", "invalid port provided, must be in the range [{}-{}]",
-           std::numeric_limits<u16>::min(), std::numeric_limits<u16>::max());
+                std::numeric_limits<u16>::min(),
+                std::numeric_limits<u16>::max());
     return 1;
   }
 

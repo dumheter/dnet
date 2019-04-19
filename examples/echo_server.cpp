@@ -1,13 +1,13 @@
-#include <dnet/connection.hpp>
-#include <dnet/net/tcp.hpp>
-#include <dnet/net/packet_header.hpp>
-#include <dnet/util/util.hpp>
-#include <dnet/util/platform.hpp>
-#include <fmt/format.h>
 #include <argparse.h>
+#include <fmt/format.h>
+#include <dnet/connection.hpp>
+#include <dnet/net/packet_header.hpp>
+#include <dnet/net/tcp.hpp>
+#include <dnet/util/platform.hpp>
+#include <dnet/util/util.hpp>
 #include <iostream>
-#include <thread>
 #include <memory>
+#include <thread>
 #include <vector>
 
 // ============================================================ //
@@ -16,14 +16,14 @@
 
 // print with fmt, prefixed with both function name and line number.
 #ifdef DNET_DEBUG
-#  define dprint(...)  \
-fmt::print("[server] [{}:{}] ", __func__, __LINE__); \
-fmt::print(__VA_ARGS__)
-#  define dprintclean(...) fmt::print(__VA_ARGS__)
+#define dprint(...)                                    \
+  fmt::print("[server] [{}:{}] ", __func__, __LINE__); \
+  fmt::print(__VA_ARGS__)
+#define dprintclean(...) fmt::print(__VA_ARGS__)
 #else
-#  define dprintln(...)
-#  define dprint(...)
-#  define dprintclean(...)
+#define dprintln(...)
+#define dprint(...)
+#define dprintclean(...)
 #endif
 
 // ============================================================ //
@@ -44,8 +44,7 @@ void DieOnFail(dnet::Result res, EchoConnection& con) {
 // ============================================================ //
 
 // when a new client connects, this function will be run on a new thread
-void Serve(EchoConnection client)
-{
+void Serve(EchoConnection client) {
   // get port
   const auto [got_peer, peer_ip, peer_port] = client.GetPeer();
   if (got_peer != dnet::Result::kSuccess) {
@@ -58,7 +57,6 @@ void Serve(EchoConnection client)
 
   bool run = true;
   while (run) {
-
     // wait for message
     dprint("[port:{}] waiting for message\n", peer_port);
     auto [res, header_data] = client.Read(payload);
@@ -73,15 +71,12 @@ void Serve(EchoConnection client)
       dprint("[port:{}] echoing back the message\n", peer_port);
       res = client.Write(header_data, payload);
       if (res != dnet::Result::kSuccess) {
-        dprint("[port:{}] failed to write with error [{}]\n",
-               peer_port,
+        dprint("[port:{}] failed to write with error [{}]\n", peer_port,
                client.LastErrorToString());
         run = false;
       }
-    }
-    else {
-      dprint("[port:{}] failed to read with error [{}]\n",
-             peer_port,
+    } else {
+      dprint("[port:{}] failed to read with error [{}]\n", peer_port,
              client.LastErrorToString());
       run = false;
     }
@@ -89,8 +84,7 @@ void Serve(EchoConnection client)
 }
 
 // listen for connections on main thread
-void RunServer(u16 port)
-{
+void RunServer(u16 port) {
   // start the server
   dprint("starting server\n");
   EchoConnection server{};
@@ -101,7 +95,6 @@ void RunServer(u16 port)
 
   bool run = true;
   while (run) {
-
     // wait for client to connect
     dprint("waiting for client\n");
     auto maybe_client = server.Accept();
@@ -114,13 +107,11 @@ void RunServer(u16 port)
         // handle the client on a seperate thread
         std::thread t(Serve, std::move(maybe_client.value()));
         t.detach();
-      }
-      else {
+      } else {
         dprint("failed to get peer with error [{}]\n",
                server.LastErrorToString());
       }
-    }
-    else {
+    } else {
       dprint("failed to accept client with error [{}]\n",
              server.LastErrorToString());
     }
@@ -129,19 +120,18 @@ void RunServer(u16 port)
 
 // ============================================================ //
 
-int main(int argc, const char** argv)
-{
+int main(int argc, const char** argv) {
   int port = 0;
   const char* ip = NULL;
   struct argparse_option options[] = {
-    OPT_HELP(),
-    OPT_GROUP("Settings"),
-    OPT_INTEGER('p', "port", &port, "port", NULL, 0, 0),
-    OPT_STRING('i', "ip", &ip, "ip address", NULL, 0, 0),
-    OPT_END(),
+      OPT_HELP(),
+      OPT_GROUP("Settings"),
+      OPT_INTEGER('p', "port", &port, "port", NULL, 0, 0),
+      OPT_STRING('i', "ip", &ip, "ip address", NULL, 0, 0),
+      OPT_END(),
   };
 
-  struct argparse argparse{};
+  struct argparse argparse {};
   argparse_init(&argparse, options, NULL, 0);
   argparse_describe(&argparse, NULL, NULL);
   argc = argparse_parse(&argparse, argc, argv);
@@ -149,7 +139,7 @@ int main(int argc, const char** argv)
   if (port < std::numeric_limits<u16>::min() ||
       port > std::numeric_limits<u16>::max()) {
     dprint("invalid port provided, must be in the range [{}-{}]\n",
-    std::numeric_limits<u16>::min(), std::numeric_limits<u16>::max());
+           std::numeric_limits<u16>::min(), std::numeric_limits<u16>::max());
     return 1;
   }
 

@@ -83,8 +83,7 @@ std::optional<ssize_t> Socket::ReadFrom(u8* buf_out, size_t buflen,
                                         const std::string& addr, u16 port) {
   ssize_t bytes;
   chif_net_address target_addr;
-  auto res =
-      chif_net_create_address(&target_addr, addr.c_str(), port, af_);
+  auto res = chif_net_create_address(&target_addr, addr.c_str(), port, af_);
   if (res == CHIF_NET_RESULT_SUCCESS) {
     res = chif_net_readfrom(socket_, buf_out, buflen, &bytes, &target_addr);
     if (res == CHIF_NET_RESULT_SUCCESS) {
@@ -109,8 +108,7 @@ std::optional<ssize_t> Socket::WriteTo(const u8* buf, size_t len,
                                        const std::string& addr, u16 port) {
   ssize_t bytes;
   chif_net_address target_addr;
-  auto res =
-      chif_net_create_address(&target_addr, addr.c_str(), port, af_);
+  auto res = chif_net_create_address(&target_addr, addr.c_str(), port, af_);
   if (res == CHIF_NET_RESULT_SUCCESS) {
     res = chif_net_writeto(socket_, buf, len, &bytes, &target_addr);
     if (res == CHIF_NET_RESULT_SUCCESS) {
@@ -126,8 +124,8 @@ void Socket::Close() { chif_net_close_socket(&socket_); }
 Result Socket::Connect(const std::string& address, u16 port) {
   chif_net_address addr;
   const std::string portstr = std::to_string(port);
-  auto res = chif_net_lookup_address(&addr, address.c_str(),
-                                           portstr.c_str(), af_, proto_);
+  auto res = chif_net_lookup_address(&addr, address.c_str(), portstr.c_str(),
+                                     af_, proto_);
   if (res == CHIF_NET_RESULT_SUCCESS) {
     if (socket_ != CHIF_NET_INVALID_SOCKET) {
       chif_net_close_socket(&socket_);

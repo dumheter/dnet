@@ -1,6 +1,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT
-#include "doctest.h"
 #include "dnet/util/util.hpp"
+#include "doctest.h"
 
 int main(int argc, char** argv) {
   dnet::Startup();

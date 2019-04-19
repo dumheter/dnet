@@ -1,14 +1,14 @@
+#include <argparse.h>
+#include <fmt/format.h>
+#include <cstdlib>
 #include <dnet/connection.hpp>
 #include <dnet/net/packet_header.hpp>
 #include <dnet/net/tcp.hpp>
-#include <dnet/util/util.hpp>
 #include <dnet/util/platform.hpp>
-#include <fmt/format.h>
-#include <argparse.h>
-#include <thread>
-#include <string>
-#include <cstdlib>
+#include <dnet/util/util.hpp>
 #include <iostream>
+#include <string>
+#include <thread>
 #include <vector>
 
 // ============================================================ //
@@ -43,7 +43,7 @@ void DieOnFail(dnet::Result res, EchoConnection& con) {
 // ============================================================ //
 
 void EchoClient(u16 port, const char* ip) {
-  //connect to the server
+  // connect to the server
   dprint("connecting to {}:{}\n", ip, port);
   EchoConnection client{};
   dnet::Result res = client.Connect(std::string(ip), port);
@@ -53,7 +53,7 @@ void EchoClient(u16 port, const char* ip) {
   // prepare payload and header
   std::string msg("Hey there, from the client.");
   std::vector<u8> payload{msg.begin(), msg.end()};
-  dnet::HeaderDataExample header_data{}; // use the default header data
+  dnet::HeaderDataExample header_data{};  // use the default header data
 
   // send the data
   dprint("writing data\n");

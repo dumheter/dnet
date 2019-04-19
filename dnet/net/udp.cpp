@@ -29,4 +29,4 @@ Result Udp::StartServer(u16 port) {
   return Result::kFail;
 }
 
-}
+}  // namespace dnet

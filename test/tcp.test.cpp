@@ -1,20 +1,19 @@
 #include <doctest.h>
-#include <dnet/connection.hpp>
-#include <dnet/util/types.hpp>
-#include <dnet/net/tcp.hpp>
 #include <dlog/dlog.hpp>
+#include <dnet/connection.hpp>
+#include <dnet/net/tcp.hpp>
+#include <dnet/util/types.hpp>
 #include <dutil/stopwatch.hpp>
-#include <vector>
-#include <thread>
 #include <memory>
-
+#include <thread>
+#include <vector>
 
 struct TestHeaderData {
   const u8 magic_number = 14;
 };
 
-using TestConnection = dnet::Connection<std::vector<u8>, dnet::Tcp,
-                                        TestHeaderData>;
+using TestConnection =
+    dnet::Connection<std::vector<u8>, dnet::Tcp, TestHeaderData>;
 
 // ============================================================ //
 // Basic tcp test - send 300 packets
@@ -34,8 +33,7 @@ static void RunServer(const u16 port, bool& run) {
       if (maybe_con.has_value()) {
         client = std::make_unique<TestConnection>(std::move(maybe_con.value()));
         has_client = true;
-      }
-      else {
+      } else {
         run = false;
       }
     }
@@ -56,7 +54,9 @@ static void RunServer(const u16 port, bool& run) {
         ++packets;
       }
     }
-    if (packets == 30300) { run = false; }
+    if (packets == 30300) {
+      run = false;
+    }
   }
   CHECK(packets == 30300);
   CHECK(res == dnet::Result::kSuccess);
@@ -75,13 +75,12 @@ static void RunClient(const u16 port, bool& run) {
 
   int packets = 30300;
   while (run && res == dnet::Result::kSuccess) {
-    if (packets --> 0) {
+    if (packets-- > 0) {
       const std::string msg{"this is a message that I am sending"};
       std::vector<u8> payload{msg.begin(), msg.end()};
       TestHeaderData header_data{};
       res = con.Write(header_data, payload);
-    }
-    else {
+    } else {
       run = false;
     }
   }

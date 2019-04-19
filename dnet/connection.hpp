@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -25,15 +25,15 @@
 #ifndef CONNECTION_HPP_
 #define CONNECTION_HPP_
 
+#include <dnet/net/packet_header.hpp>
+#include <dnet/util/dnet_assert.hpp>
+#include <dnet/util/result.hpp>
+#include <dnet/util/types.hpp>
 #include <limits>
 #include <optional>
 #include <string>
 #include <tuple>
 #include <type_traits>
-#include <dnet/net/packet_header.hpp>
-#include <dnet/util/dnet_assert.hpp>
-#include <dnet/util/result.hpp>
-#include <dnet/util/types.hpp>
 
 namespace dnet {
 
@@ -44,7 +44,8 @@ namespace dnet {
  * @tparam THeaderData Provide your own data in the header! Note, packet size is
  * handled internally.
  */
-template <typename TVector, typename TTransport, typename THeaderData = HeaderDataExample>
+template <typename TVector, typename TTransport,
+          typename THeaderData = HeaderDataExample>
 class Connection {
  public:
   static_assert(std::is_standard_layout<THeaderData>::value,
@@ -159,8 +160,9 @@ Connection<TVector, TTransport, THeaderData>::Connection(
     : transport_(std::move(other.transport_)) {}
 
 template <typename TVector, typename TTransport, typename THeaderData>
-Connection<TVector, TTransport, THeaderData>& Connection<TVector, TTransport, THeaderData>::
-operator=(Connection<TVector, TTransport, THeaderData>&& other) noexcept {
+Connection<TVector, TTransport, THeaderData>&
+Connection<TVector, TTransport, THeaderData>::operator=(
+    Connection<TVector, TTransport, THeaderData>&& other) noexcept {
   if (&other != this) {
     transport_ = std::move(other.transport_);
   }
@@ -181,7 +183,8 @@ void Connection<TVector, TTransport, THeaderData>::Disconnect() {
 // TODO go over the types used
 // TODO utilize NRVO
 template <typename TVector, typename TTransport, typename THeaderData>
-std::tuple<Result, THeaderData> Connection<TVector, TTransport, THeaderData>::Read(TVector& payload_out) {
+std::tuple<Result, THeaderData>
+Connection<TVector, TTransport, THeaderData>::Read(TVector& payload_out) {
   Header header{};
   ssize_t bytes = 0;
   // TODO make it possible to break out of loops if bad header
@@ -204,8 +207,8 @@ std::tuple<Result, THeaderData> Connection<TVector, TTransport, THeaderData>::Re
   // TODO bad cast
   while (static_cast<size_t>(bytes) < header.payload_size()) {
     // TODO timeout read in case bad info in header
-    const auto maybe_bytes = transport_.Read(
-        &payload_out[bytes], header.payload_size() - bytes);
+    const auto maybe_bytes =
+        transport_.Read(&payload_out[bytes], header.payload_size() - bytes);
     if (maybe_bytes.has_value()) {
       bytes += maybe_bytes.value();
     } else {
@@ -227,8 +230,10 @@ Result Connection<TVector, TTransport, THeaderData>::Write(
       payload_size < std::numeric_limits<typename Header::PayloadSize>::min()) {
     // TODO send payloads larger than what can fit in a single packet
     DNET_ASSERT(
-        payload_size > std::numeric_limits<typename Header::PayloadSize>::max() ||
-            payload_size < std::numeric_limits<typename Header::PayloadSize>::min(),
+        payload_size >
+                std::numeric_limits<typename Header::PayloadSize>::max() ||
+            payload_size <
+                std::numeric_limits<typename Header::PayloadSize>::min(),
         "Cannot fit the payload in the packet");
   }
   const Header header{static_cast<typename Header::PayloadSize>(payload_size),

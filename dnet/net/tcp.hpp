@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -25,12 +25,12 @@
 #ifndef TCP_HPP_
 #define TCP_HPP_
 
-#include <optional>
-#include <string>
-#include <tuple>
 #include <dnet/net/socket.hpp>
 #include <dnet/util/result.hpp>
 #include <dnet/util/types.hpp>
+#include <optional>
+#include <string>
+#include <tuple>
 
 namespace dnet {
 
@@ -82,17 +82,13 @@ class Tcp {
   /**
    * @return Result of the call, Ip and port of peer.
    */
-  std::tuple<Result, std::string, u16> GetPeer() {
-    return socket_.GetPeer();
-  }
+  std::tuple<Result, std::string, u16> GetPeer() { return socket_.GetPeer(); }
 
   /**
    * If a Result comes back as kFail, or std::optional as std::nullopt, an
    * error will be set. Use this function to access the error string.
    */
-  std::string LastErrorToString() const {
-    return socket_.LastErrorToString();
-  }
+  std::string LastErrorToString() const { return socket_.LastErrorToString(); }
 
   Result SetBlocking(bool blocking) const {
     return socket_.SetBlocking(blocking);

@@ -1,21 +1,17 @@
 #include <doctest.h>
+#include <dlog/dlog.hpp>
 #include <dnet/connection.hpp>
 #include <dnet/net/udp.hpp>
 #include <dnet/util/types.hpp>
 #include <dutil/stopwatch.hpp>
-#include <dlog/dlog.hpp>
-#include <vector>
 #include <thread>
+#include <vector>
 
 // ============================================================ //
 // Setup
 // ============================================================ //
 
-enum class PacketType : u8 {
-  kOne,
-  kTwo,
-  kThree
-};
+enum class PacketType : u8 { kOne, kTwo, kThree };
 
 /**
  * You make up your own header data
@@ -51,7 +47,8 @@ std::string HeaderDataToString(const TestHeaderData& header_data) {
   return str;
 }
 
-using TestConnection = dnet::Connection<std::vector<u8>, dnet::Udp, TestHeaderData>;
+using TestConnection =
+    dnet::Connection<std::vector<u8>, dnet::Udp, TestHeaderData>;
 
 // ============================================================ //
 
@@ -91,58 +88,56 @@ void RunServer(const u16 port, bool& run, int& packets) {
 // ============================================================ //
 
 TEST_CASE("udp basics") {
+  const auto RunClient = [](const u16 port, bool& run) {
+    TestConnection con{};
 
-  const auto RunClient =
-      [](const u16 port, bool& run) {
-        TestConnection con{};
+    dnet::Result res = dnet::Result::kFail;
+    while (run && res != dnet::Result::kSuccess) {
+      res = con.Connect("localhost", port);
+    }
+    CHECK(res == dnet::Result::kSuccess);
 
-        dnet::Result res = dnet::Result::kFail;
-        while (run && res != dnet::Result::kSuccess) {
-          res = con.Connect("localhost", port);
-        }
-        CHECK(res == dnet::Result::kSuccess);
+    // send a one packet
+    {
+      const std::string str{"hey from client"};
+      std::vector<u8> payload{str.begin(), str.end()};
+      TestHeaderData header_data{};
+      header_data.type = PacketType::kOne;
+      header_data.some_number = 5;
+      res = con.Write(header_data, payload);
+      CHECK(res == dnet::Result::kSuccess);
+    }
 
-        // send a one packet
-        {
-          const std::string str{"hey from client"};
-          std::vector<u8> payload{str.begin(), str.end()};
-          TestHeaderData header_data{};
-          header_data.type = PacketType::kOne;
-          header_data.some_number = 5;
-          res = con.Write(header_data, payload);
-          CHECK(res == dnet::Result::kSuccess);
-        }
+    // send a two packet
+    {
+      const std::string str{"second packet"};
+      std::vector<u8> payload{str.begin(), str.end()};
+      TestHeaderData header_data{};
+      header_data.type = PacketType::kTwo;
+      header_data.some_number = 1337;
+      res = con.Write(header_data, payload);
+      CHECK(res == dnet::Result::kSuccess);
+    }
 
-        // send a two packet
-        {
-          const std::string str{"second packet"};
-          std::vector<u8> payload{str.begin(), str.end()};
-          TestHeaderData header_data{};
-          header_data.type = PacketType::kTwo;
-          header_data.some_number = 1337;
-          res = con.Write(header_data, payload);
-          CHECK(res == dnet::Result::kSuccess);
-        }
+    // send a three packet
+    {
+      const std::string str{"last packet, you should stop running"};
+      std::vector<u8> payload{str.begin(), str.end()};
+      TestHeaderData header_data{};
+      header_data.type = PacketType::kThree;
+      header_data.some_number = 0;
+      res = con.Write(header_data, payload);
+      CHECK(res == dnet::Result::kSuccess);
+    }
 
-        // send a three packet
-        {
-          const std::string str{"last packet, you should stop running"};
-          std::vector<u8> payload{str.begin(), str.end()};
-          TestHeaderData header_data{};
-          header_data.type = PacketType::kThree;
-          header_data.some_number = 0;
-          res = con.Write(header_data, payload);
-          CHECK(res == dnet::Result::kSuccess);
-        }
+    while (run && res == dnet::Result::kSuccess) {
+      run = false;
+    }
 
-        while (run && res == dnet::Result::kSuccess) {
-          run = false;
-        }
-
-        if (res != dnet::Result::kSuccess) {
-          DLOG_INFO("chif_net error: {}", con.LastErrorToString());
-        }
-      };
+    if (res != dnet::Result::kSuccess) {
+      DLOG_INFO("chif_net error: {}", con.LastErrorToString());
+    }
+  };
 
   constexpr u16 port = 2048;
   bool run_server = true;
@@ -175,45 +170,43 @@ TEST_CASE("udp basics") {
 // ============================================================ //
 
 TEST_CASE("udp big packet") {
+  const auto RunClient = [](const u16 port, bool& run) {
+    TestConnection con{};
 
-  const auto RunClient =
-      [](const u16 port, bool& run) {
-        TestConnection con{};
+    dnet::Result res = dnet::Result::kFail;
+    while (run && res != dnet::Result::kSuccess) {
+      res = con.Connect("localhost", port);
+    }
+    CHECK(res == dnet::Result::kSuccess);
+    if (res != dnet::Result::kSuccess) {
+      DLOG_WARNING("Result::kFail [{}]", con.LastErrorToString());
+    }
 
-        dnet::Result res = dnet::Result::kFail;
-        while (run && res != dnet::Result::kSuccess) {
-          res = con.Connect("localhost", port);
-        }
-        CHECK(res == dnet::Result::kSuccess);
-        if (res != dnet::Result::kSuccess) {
-          DLOG_WARNING("Result::kFail [{}]", con.LastErrorToString());
-        }
+    std::vector<u8> payload{};
+    constexpr int max_udp_packet_size = 65507;
+    for (int i = 0; i < max_udp_packet_size + 1; i++) {
+      payload.push_back(1);
+    }
+    DLOG_INFO("size {}", payload.size());
+    TestHeaderData header_data{};
+    header_data.type = PacketType::kThree;
+    res = con.Write(header_data, payload);
+    CHECK(res == dnet::Result::kSuccess);
+    if (res != dnet::Result::kSuccess) {
+      DLOG_WARNING("Result::kFail [{}]", con.LastErrorToString());
+    }
 
-        std::vector<u8> payload{};
-        constexpr int max_udp_packet_size = 65507;
-        for (int i = 0; i < max_udp_packet_size +1; i++) {
-          payload.push_back(1);
-        }
-        DLOG_INFO("size {}", payload.size());
-        TestHeaderData header_data{};
-        header_data.type = PacketType::kThree;
-        res = con.Write(header_data, payload);
-        CHECK(res == dnet::Result::kSuccess);
-        if (res != dnet::Result::kSuccess) {
-          DLOG_WARNING("Result::kFail [{}]", con.LastErrorToString());
-        }
+    while (run && res == dnet::Result::kSuccess) {
+      run = false;
+    }
 
-        while (run && res == dnet::Result::kSuccess) {
-          run = false;
-        }
+    CHECK(res == dnet::Result::kSuccess);
+    if (res != dnet::Result::kSuccess) {
+      DLOG_WARNING("Result::kFail [{}]", con.LastErrorToString());
+    }
 
-        CHECK(res == dnet::Result::kSuccess);
-        if (res != dnet::Result::kSuccess) {
-          DLOG_WARNING("Result::kFail [{}]", con.LastErrorToString());
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
-      };
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+  };
 
   constexpr u16 port = 2049;
   bool run_server = true;
