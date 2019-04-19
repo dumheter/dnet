@@ -55,20 +55,22 @@ using TestConnection = dnet::Connection<std::vector<u8>, dnet::Udp, TestHeaderDa
 
 // ============================================================ //
 
-static void RunServer(const u16 port, bool& run) {
+void RunServer(const u16 port, bool& run, int& packets) {
+  packets = 0;
+
   TestConnection con{};
   dnet::Result res = con.start_server(port);
   CHECK(res == dnet::Result::kSuccess);
+  if (res != dnet::Result::kSuccess) {
+    DLOG_WARNING("Result::kFail [{}]", con.last_error_to_string());
+  }
 
   std::vector<u8> payload{};
   payload.reserve(2048);
 
-  int packets = 0;
-
   while (run && res == dnet::Result::kSuccess) {
-
     if (con.can_read()) {
-      const auto [read_res, header_data] = con.read(payload);
+      auto [read_res, header_data] = con.read(payload);
       CHECK(read_res == dnet::Result::kSuccess);
       res = read_res;
       if (read_res == dnet::Result::kSuccess) {
@@ -82,70 +84,142 @@ static void RunServer(const u16 port, bool& run) {
   }
 
   if (res != dnet::Result::kSuccess) {
-    DLOG_INFO("chif_net error: {}", con.last_error_to_string());
+    DLOG_WARNING("Result::kFail [{}]", con.last_error_to_string());
   }
+}
+
+// ============================================================ //
+
+TEST_CASE("udp basics") {
+
+  const auto RunClient =
+      [](const u16 port, bool& run) {
+        TestConnection con{};
+
+        dnet::Result res = dnet::Result::kFail;
+        while (run && res != dnet::Result::kSuccess) {
+          res = con.connect("localhost", port);
+        }
+        CHECK(res == dnet::Result::kSuccess);
+
+        // send a one packet
+        {
+          const std::string str{"hey from client"};
+          std::vector<u8> payload{str.begin(), str.end()};
+          TestHeaderData header_data{};
+          header_data.type = PacketType::kOne;
+          header_data.some_number = 5;
+          res = con.write(header_data, payload);
+          CHECK(res == dnet::Result::kSuccess);
+        }
+
+        // send a two packet
+        {
+          const std::string str{"second packet"};
+          std::vector<u8> payload{str.begin(), str.end()};
+          TestHeaderData header_data{};
+          header_data.type = PacketType::kTwo;
+          header_data.some_number = 1337;
+          res = con.write(header_data, payload);
+          CHECK(res == dnet::Result::kSuccess);
+        }
+
+        // send a three packet
+        {
+          const std::string str{"last packet, you should stop running"};
+          std::vector<u8> payload{str.begin(), str.end()};
+          TestHeaderData header_data{};
+          header_data.type = PacketType::kThree;
+          header_data.some_number = 0;
+          res = con.write(header_data, payload);
+          CHECK(res == dnet::Result::kSuccess);
+        }
+
+        while (run && res == dnet::Result::kSuccess) {
+          run = false;
+        }
+
+        if (res != dnet::Result::kSuccess) {
+          DLOG_INFO("chif_net error: {}", con.last_error_to_string());
+        }
+      };
+
+  constexpr u16 port = 2048;
+  bool run_server = true;
+  int packets = 0;
+  std::thread server_thread{RunServer, port, std::ref(run_server),
+                            std::ref(packets)};
+  bool run_client = true;
+  std::thread client_thread{RunClient, port, std::ref(run_client)};
+
+  dutil::Stopwatch stopwatch{};
+  stopwatch.start();
+  constexpr long timeout_ms = 2000;
+  bool did_timeout = false;
+  while (run_server || run_client) {
+    if (stopwatch.now_ms() > timeout_ms) {
+      did_timeout = true;
+      break;
+    }
+  }
+  CHECK(did_timeout == false);
+
+  run_server = false;
+  run_client = false;
+  server_thread.join();
+  client_thread.join();
 
   CHECK(packets == 3);
 }
 
-static void RunClient(const u16 port, bool& run) {
-  // allow for the server to start
-  std::this_thread::sleep_for(std::chrono::milliseconds(5));
-
-  TestConnection con{};
-  dnet::Result res = con.connect("localhost", port);
-  CHECK(res == dnet::Result::kSuccess);
-
-  // send a one packet
-  {
-    const std::string str{"hey from client"};
-    std::vector<u8> payload{str.begin(), str.end()};
-    TestHeaderData header_data{};
-    header_data.type = PacketType::kOne;
-    header_data.some_number = 5;
-    res = con.write(header_data, payload);
-    CHECK(res == dnet::Result::kSuccess);
-  }
-
-  // send a two packet
-  {
-    const std::string str{"second packet"};
-    std::vector<u8> payload{str.begin(), str.end()};
-    TestHeaderData header_data{};
-    header_data.type = PacketType::kTwo;
-    header_data.some_number = 1337;
-    res = con.write(header_data, payload);
-    CHECK(res == dnet::Result::kSuccess);
-  }
-
-  // send a three packet
-  {
-    const std::string str{"last packet, you should stop running"};
-    std::vector<u8> payload{str.begin(), str.end()};
-    TestHeaderData header_data{};
-    header_data.type = PacketType::kThree;
-    header_data.some_number = 0;
-    res = con.write(header_data, payload);
-    CHECK(res == dnet::Result::kSuccess);
-  }
-
-  while (run && res == dnet::Result::kSuccess) {
-    run = false;
-  }
-
-  if (res != dnet::Result::kSuccess) {
-    DLOG_INFO("chif_net error: {}", con.last_error_to_string());
-  }
-}
-
-// ============================================================ //
-// Tests
 // ============================================================ //
 
-TEST_CASE("udp basics") {
-  constexpr u16 port = 2048;
+TEST_CASE("udp big packet") {
+
+  const auto RunClient =
+      [](const u16 port, bool& run) {
+        TestConnection con{};
+
+        dnet::Result res = dnet::Result::kFail;
+        while (run && res != dnet::Result::kSuccess) {
+          res = con.connect("localhost", port);
+        }
+        CHECK(res == dnet::Result::kSuccess);
+        if (res != dnet::Result::kSuccess) {
+          DLOG_WARNING("Result::kFail [{}]", con.last_error_to_string());
+        }
+
+        std::vector<u8> payload{};
+        constexpr int max_udp_packet_size = 65507;
+        for (int i = 0; i < max_udp_packet_size +1; i++) {
+          payload.push_back(1);
+        }
+        DLOG_INFO("size {}", payload.size());
+        TestHeaderData header_data{};
+        header_data.type = PacketType::kThree;
+        res = con.write(header_data, payload);
+        CHECK(res == dnet::Result::kSuccess);
+        if (res != dnet::Result::kSuccess) {
+          DLOG_WARNING("Result::kFail [{}]", con.last_error_to_string());
+        }
+
+        while (run && res == dnet::Result::kSuccess) {
+          run = false;
+        }
+
+        CHECK(res == dnet::Result::kSuccess);
+        if (res != dnet::Result::kSuccess) {
+          DLOG_WARNING("Result::kFail [{}]", con.last_error_to_string());
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+      };
+
+  constexpr u16 port = 2049;
   bool run_server = true;
-  std::thread server_thread{RunServer, port, std::ref(run_server)};
+  int packets = 0;
+  std::thread server_thread{RunServer, port, std::ref(run_server),
+                            std::ref(packets)};
   bool run_client = true;
   std::thread client_thread{RunClient, port, std::ref(run_client)};
 

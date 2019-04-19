@@ -51,9 +51,6 @@ class Tcp {
  public:
   Result start_server(u16 port);
 
-  /*
-   * Block until a client connects, call can_block() first to avoid blocking.
-   */
   std::optional<Tcp> accept();
 
   Result connect(const std::string& address, u16 port) {
@@ -95,6 +92,10 @@ class Tcp {
    */
   std::string last_error_to_string() const {
     return socket_.last_error_to_string();
+  }
+
+  Result set_blocking(bool blocking) const {
+    return socket_.set_blocking(blocking);
   }
 
  private:

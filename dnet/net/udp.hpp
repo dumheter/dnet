@@ -98,6 +98,10 @@ class Udp {
     return socket_.last_error_to_string();
   }
 
+  Result set_blocking(bool blocking) const {
+    return socket_.set_blocking(blocking);
+  }
+
   // ============================================================ //
 
  private:

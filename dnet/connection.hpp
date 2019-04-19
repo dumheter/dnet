@@ -79,12 +79,7 @@ class Connection {
 
   std::tuple<Result, THeaderData> read(TVector& payload_out);
 
-  // TODO implement this
-  // void read(u8* payload, size_t payload_size);
-
   Result write(const THeaderData& header_data, const TVector& payload);
-  Result write(const THeaderData& header_data, const u8* payload,
-               typename Header::Payload_size payload_size);
 
   /**
    * @return Any error occured while attempting to check, will return false.
@@ -132,6 +127,10 @@ class Connection {
    */
   std::tuple<Result, std::string, u16> get_peer() {
     return m_transport.get_peer();
+  }
+
+  Result set_blocking(bool blocking) const {
+    return m_transport.set_blocking(blocking);
   }
 
   // ====================================================================== //
@@ -244,6 +243,7 @@ Result Connection<TVector, TTransport, THeaderData>::write(
     } else {
       return Result::kFail;
     }
+    // TODO not using bytes
   }
 
   bytes = 0;
@@ -253,47 +253,6 @@ Result Connection<TVector, TTransport, THeaderData>::write(
         m_transport.write(&payload[bytes], header.get_payload_size() - bytes);
     if (maybe_bytes.has_value()) {
       bytes += maybe_bytes.value();
-    } else {
-      return Result::kFail;
-    }
-  }
-
-  return Result::kSuccess;
-}
-
-template <typename TVector, typename TTransport, typename THeaderData>
-Result Connection<TVector, TTransport, THeaderData>::write(
-    const THeaderData& header_data, const u8* payload,
-    typename Header::Payload_size payload_size) {
-  if (payload_size > std::numeric_limits<typename Header::Payload_size>::max() ||
-      payload_size < std::numeric_limits<typename Header::Payload_size>::min()) {
-    // TODO send payloads larger than what can fit in a single packet
-    DNET_ASSERT(
-        payload_size > std::numeric_limits<typename Header::Payload_size>::max() ||
-            payload_size < std::numeric_limits<typename Header::Payload_size>::min(),
-        "Cannot fit the payload in the packet");
-  }
-  const Header header{static_cast<typename Header::Payload_size>(payload_size),
-                      header_data};
-
-  ssize_t bytes = 0;
-  // TODO make it possible to break out of loops if bad header
-  while (bytes < header.get_header_size()) {
-    const auto maybe_bytes =
-        m_transport.write(header.get_const(), Header::get_header_size());
-    if (maybe_bytes.has_value()) {
-      bytes += maybe_bytes.value();
-    } else {
-      return Result::kFail;
-    }
-  }
-
-  bytes = 0;
-  while (bytes < header.get_payload_size()) {
-    const auto maybe_value =
-        m_transport.write(payload + bytes, payload_size - bytes);
-    if (maybe_value.has_value()) {
-      bytes += maybe_value.value();
     } else {
       return Result::kFail;
     }

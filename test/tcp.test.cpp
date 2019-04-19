@@ -56,9 +56,9 @@ static void RunServer(const u16 port, bool& run) {
         ++packets;
       }
     }
-    if (packets == 300) { run = false; }
+    if (packets == 30300) { run = false; }
   }
-  CHECK(packets == 300);
+  CHECK(packets == 30300);
   CHECK(res == dnet::Result::kSuccess);
   if (res != dnet::Result::kSuccess) {
     DLOG_WARNING("last error {}", client->last_error_to_string());
@@ -73,7 +73,7 @@ static void RunClient(const u16 port, bool& run) {
     res = con.connect("localhost", port);
   }
 
-  int packets = 300;
+  int packets = 30300;
   while (run && res == dnet::Result::kSuccess) {
     if (packets --> 0) {
       const std::string msg{"this is a message that I am sending"};
