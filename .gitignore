@@ -48,3 +48,6 @@ Debug/
 Win32/
 dnet.dir/
 cmake-build-debug/
+
+.ccls-cache/
+compile_commands.json
