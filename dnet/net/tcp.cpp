@@ -15,16 +15,16 @@ Tcp& Tcp::operator=(Tcp&& other) noexcept {
 
 Tcp::Tcp(Socket&& socket) : socket_(std::move(socket)) {}
 
-Result Tcp::start_server(u16 port) {
-  Result res = socket_.open();
+Result Tcp::StartServer(u16 port) {
+  Result res = socket_.Open();
   if (res == Result::kSuccess) {
     // After closing the program, the port can be left in an occupied state,
     // setting resue to true allows for instant reuse of that port.
-    res = socket_.set_reuse_addr(true);
+    res = socket_.SetReuseAddr(true);
     if (res == Result::kSuccess) {
-      res = socket_.bind(port);
+      res = socket_.Bind(port);
       if (res == Result::kSuccess) {
-        res = socket_.listen();
+        res = socket_.Listen();
         if (res == Result::kSuccess) {
           return Result::kSuccess;
         }
@@ -34,8 +34,8 @@ Result Tcp::start_server(u16 port) {
   return Result::kFail;
 }
 
-std::optional<Tcp> Tcp::accept() {
-  auto maybe_socket = socket_.accept();
+std::optional<Tcp> Tcp::Accept() {
+  auto maybe_socket = socket_.Accept();
   if (maybe_socket.has_value()) {
     return std::optional<Tcp>{Tcp(std::move(maybe_socket.value()))};
   }

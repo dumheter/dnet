@@ -59,18 +59,18 @@ void RunServer(const u16 port, bool& run, int& packets) {
   packets = 0;
 
   TestConnection con{};
-  dnet::Result res = con.start_server(port);
+  dnet::Result res = con.StartServer(port);
   CHECK(res == dnet::Result::kSuccess);
   if (res != dnet::Result::kSuccess) {
-    DLOG_WARNING("Result::kFail [{}]", con.last_error_to_string());
+    DLOG_WARNING("Result::kFail [{}]", con.LastErrorToString());
   }
 
   std::vector<u8> payload{};
   payload.reserve(2048);
 
   while (run && res == dnet::Result::kSuccess) {
-    if (con.can_read()) {
-      auto [read_res, header_data] = con.read(payload);
+    if (con.CanRead()) {
+      auto [read_res, header_data] = con.Read(payload);
       CHECK(read_res == dnet::Result::kSuccess);
       res = read_res;
       if (read_res == dnet::Result::kSuccess) {
@@ -84,7 +84,7 @@ void RunServer(const u16 port, bool& run, int& packets) {
   }
 
   if (res != dnet::Result::kSuccess) {
-    DLOG_WARNING("Result::kFail [{}]", con.last_error_to_string());
+    DLOG_WARNING("Result::kFail [{}]", con.LastErrorToString());
   }
 }
 
@@ -98,7 +98,7 @@ TEST_CASE("udp basics") {
 
         dnet::Result res = dnet::Result::kFail;
         while (run && res != dnet::Result::kSuccess) {
-          res = con.connect("localhost", port);
+          res = con.Connect("localhost", port);
         }
         CHECK(res == dnet::Result::kSuccess);
 
@@ -109,7 +109,7 @@ TEST_CASE("udp basics") {
           TestHeaderData header_data{};
           header_data.type = PacketType::kOne;
           header_data.some_number = 5;
-          res = con.write(header_data, payload);
+          res = con.Write(header_data, payload);
           CHECK(res == dnet::Result::kSuccess);
         }
 
@@ -120,7 +120,7 @@ TEST_CASE("udp basics") {
           TestHeaderData header_data{};
           header_data.type = PacketType::kTwo;
           header_data.some_number = 1337;
-          res = con.write(header_data, payload);
+          res = con.Write(header_data, payload);
           CHECK(res == dnet::Result::kSuccess);
         }
 
@@ -131,7 +131,7 @@ TEST_CASE("udp basics") {
           TestHeaderData header_data{};
           header_data.type = PacketType::kThree;
           header_data.some_number = 0;
-          res = con.write(header_data, payload);
+          res = con.Write(header_data, payload);
           CHECK(res == dnet::Result::kSuccess);
         }
 
@@ -140,7 +140,7 @@ TEST_CASE("udp basics") {
         }
 
         if (res != dnet::Result::kSuccess) {
-          DLOG_INFO("chif_net error: {}", con.last_error_to_string());
+          DLOG_INFO("chif_net error: {}", con.LastErrorToString());
         }
       };
 
@@ -182,11 +182,11 @@ TEST_CASE("udp big packet") {
 
         dnet::Result res = dnet::Result::kFail;
         while (run && res != dnet::Result::kSuccess) {
-          res = con.connect("localhost", port);
+          res = con.Connect("localhost", port);
         }
         CHECK(res == dnet::Result::kSuccess);
         if (res != dnet::Result::kSuccess) {
-          DLOG_WARNING("Result::kFail [{}]", con.last_error_to_string());
+          DLOG_WARNING("Result::kFail [{}]", con.LastErrorToString());
         }
 
         std::vector<u8> payload{};
@@ -197,10 +197,10 @@ TEST_CASE("udp big packet") {
         DLOG_INFO("size {}", payload.size());
         TestHeaderData header_data{};
         header_data.type = PacketType::kThree;
-        res = con.write(header_data, payload);
+        res = con.Write(header_data, payload);
         CHECK(res == dnet::Result::kSuccess);
         if (res != dnet::Result::kSuccess) {
-          DLOG_WARNING("Result::kFail [{}]", con.last_error_to_string());
+          DLOG_WARNING("Result::kFail [{}]", con.LastErrorToString());
         }
 
         while (run && res == dnet::Result::kSuccess) {
@@ -209,7 +209,7 @@ TEST_CASE("udp big packet") {
 
         CHECK(res == dnet::Result::kSuccess);
         if (res != dnet::Result::kSuccess) {
-          DLOG_WARNING("Result::kFail [{}]", con.last_error_to_string());
+          DLOG_WARNING("Result::kFail [{}]", con.LastErrorToString());
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(5));

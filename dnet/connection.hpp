@@ -44,14 +44,14 @@ namespace dnet {
  * @tparam THeaderData Provide your own data in the header! Note, packet size is
  * handled internally.
  */
-template <typename TVector, typename TTransport, typename THeaderData = Header_data_example>
+template <typename TVector, typename TTransport, typename THeaderData = HeaderDataExample>
 class Connection {
  public:
   static_assert(std::is_standard_layout<THeaderData>::value,
                 "THeaderData must be trivial (C struct) in order to serialize "
                 "correctly.");
 
-  using Header = Packet_header<THeaderData>;
+  using Header = PacketHeader<THeaderData>;
 
   // ====================================================================== //
   // Lifetime
@@ -73,36 +73,36 @@ class Connection {
   // Client methods
   // ====================================================================== //
 
-  Result connect(const std::string& address, u16 port);
+  Result Connect(const std::string& address, u16 port);
 
-  void disconnect();
+  void Disconnect();
 
-  std::tuple<Result, THeaderData> read(TVector& payload_out);
+  std::tuple<Result, THeaderData> Read(TVector& payload_out);
 
-  Result write(const THeaderData& header_data, const TVector& payload);
-
-  /**
-   * @return Any error occured while attempting to check, will return false.
-   */
-  bool can_read() const;
+  Result Write(const THeaderData& header_data, const TVector& payload);
 
   /**
    * @return Any error occured while attempting to check, will return false.
    */
-  bool can_write() const;
+  bool CanRead() const;
+
+  /**
+   * @return Any error occured while attempting to check, will return false.
+   */
+  bool CanWrite() const;
 
   // ====================================================================== //
   // Server methods
   // ====================================================================== //
 
-  Result start_server(u16 port);
+  Result StartServer(u16 port);
 
-  std::optional<Connection> accept();
+  std::optional<Connection> Accept();
 
   /**
    * @return Any error occured while attempting to check, will return false.
    */
-  bool can_accept() const;
+  bool CanAccept() const;
 
   // ====================================================================== //
   // General methods
@@ -111,26 +111,26 @@ class Connection {
   /**
    * @return Any error occured while attempting to check, will return false.
    */
-  bool has_error() const;
+  bool HasError() const;
 
-  std::optional<std::string> get_ip() { return m_transport.get_ip(); }
+  std::optional<std::string> GetIp() { return transport_.GetIp(); }
 
-  std::optional<u16> get_port() { return m_transport.get_port(); }
-
-  std::string last_error_to_string() const {
-    return m_transport.last_error_to_string();
-  }
+  std::optional<u16> GetPort() { return transport_.GetPort(); }
 
   /**
    * Get the address information about the peer which we are connected to.
    * @return Result of the call, Ip and port of peer.
    */
-  std::tuple<Result, std::string, u16> get_peer() {
-    return m_transport.get_peer();
+  std::tuple<Result, std::string, u16> GetPeer() {
+    return transport_.GetPeer();
   }
 
-  Result set_blocking(bool blocking) const {
-    return m_transport.set_blocking(blocking);
+  std::string LastErrorToString() const {
+    return transport_.LastErrorToString();
+  }
+
+  Result SetBlocking(bool blocking) const {
+    return transport_.SetBlocking(blocking);
   }
 
   // ====================================================================== //
@@ -138,7 +138,7 @@ class Connection {
   // ====================================================================== //
 
  private:
-  TTransport m_transport;
+  TTransport transport_;
 };
 
 // ====================================================================== //
@@ -146,47 +146,48 @@ class Connection {
 // ====================================================================== //
 
 template <typename TVector, typename TTransport, typename THeaderData>
-Connection<TVector, TTransport, THeaderData>::Connection() : m_transport() {}
+Connection<TVector, TTransport, THeaderData>::Connection() : transport_() {}
 
+// TODO use std::forward here?
 template <typename TVector, typename TTransport, typename THeaderData>
 Connection<TVector, TTransport, THeaderData>::Connection(TTransport&& transport)
-    : m_transport(std::move(transport)) {}
+    : transport_(std::move(transport)) {}
 
 template <typename TVector, typename TTransport, typename THeaderData>
 Connection<TVector, TTransport, THeaderData>::Connection(
     Connection<TVector, TTransport, THeaderData>&& other) noexcept
-    : m_transport(std::move(other.m_transport)) {}
+    : transport_(std::move(other.transport_)) {}
 
 template <typename TVector, typename TTransport, typename THeaderData>
 Connection<TVector, TTransport, THeaderData>& Connection<TVector, TTransport, THeaderData>::
 operator=(Connection<TVector, TTransport, THeaderData>&& other) noexcept {
   if (&other != this) {
-    m_transport = std::move(other.m_transport);
+    transport_ = std::move(other.transport_);
   }
   return *this;
 }
 
 template <typename TVector, typename TTransport, typename THeaderData>
-Result Connection<TVector, TTransport, THeaderData>::connect(const std::string& address,
-                                                    u16 port) {
-  return m_transport.connect(address, port);
+Result Connection<TVector, TTransport, THeaderData>::Connect(
+    const std::string& address, u16 port) {
+  return transport_.Connect(address, port);
 }
 
 template <typename TVector, typename TTransport, typename THeaderData>
-void Connection<TVector, TTransport, THeaderData>::disconnect() {
-  m_transport.disconnect();
+void Connection<TVector, TTransport, THeaderData>::Disconnect() {
+  transport_.Disconnect();
 }
 
 // TODO go over the types used
+// TODO utilize NRVO
 template <typename TVector, typename TTransport, typename THeaderData>
-std::tuple<Result, THeaderData> Connection<TVector, TTransport, THeaderData>::read(
-    TVector& payload_out) {
+std::tuple<Result, THeaderData> Connection<TVector, TTransport, THeaderData>::Read(TVector& payload_out) {
   Header header{};
   ssize_t bytes = 0;
   // TODO make it possible to break out of loops if bad header
-  while (bytes < Header::get_header_size()) {
+  while (bytes < Header::header_size()) {
     const auto maybe_bytes =
-        m_transport.read(header.get(), Header::get_header_size());
+        transport_.Read(header.get(), Header::header_size());
     if (maybe_bytes.has_value()) {
       bytes += maybe_bytes.value();
     } else {
@@ -194,50 +195,51 @@ std::tuple<Result, THeaderData> Connection<TVector, TTransport, THeaderData>::re
     }
   }
 
-  if (payload_out.capacity() < header.get_payload_size()) {
-    payload_out.reserve(header.get_payload_size());
+  if (payload_out.capacity() < header.payload_size()) {
+    payload_out.reserve(header.payload_size());
   }
 
   payload_out.resize(payload_out.capacity());
   bytes = 0;
   // TODO bad cast
-  while (static_cast<size_t>(bytes) < header.get_payload_size()) {
+  while (static_cast<size_t>(bytes) < header.payload_size()) {
     // TODO timeout read in case bad info in header
-    const auto maybe_bytes = m_transport.read(
-        &payload_out[bytes], header.get_payload_size() - bytes);
+    const auto maybe_bytes = transport_.Read(
+        &payload_out[bytes], header.payload_size() - bytes);
     if (maybe_bytes.has_value()) {
       bytes += maybe_bytes.value();
     } else {
       return std::make_tuple<Result, THeaderData>(Result::kFail,
-                                                  header.get_header_data());
+                                                  header.header_data());
     }
   }
   payload_out.resize(static_cast<size_t>(bytes));
   return std::make_tuple<Result, THeaderData>(Result::kSuccess,
-                                              header.get_header_data());
+                                              header.header_data());
 }
 
+// TODO utilize NRVO
 template <typename TVector, typename TTransport, typename THeaderData>
-Result Connection<TVector, TTransport, THeaderData>::write(
+Result Connection<TVector, TTransport, THeaderData>::Write(
     const THeaderData& header_data, const TVector& payload) {
   const auto payload_size = payload.size();
-  if (payload_size > std::numeric_limits<typename Header::Payload_size>::max() ||
-      payload_size < std::numeric_limits<typename Header::Payload_size>::min()) {
+  if (payload_size > std::numeric_limits<typename Header::PayloadSize>::max() ||
+      payload_size < std::numeric_limits<typename Header::PayloadSize>::min()) {
     // TODO send payloads larger than what can fit in a single packet
     DNET_ASSERT(
-        payload_size > std::numeric_limits<typename Header::Payload_size>::max() ||
-            payload_size < std::numeric_limits<typename Header::Payload_size>::min(),
+        payload_size > std::numeric_limits<typename Header::PayloadSize>::max() ||
+            payload_size < std::numeric_limits<typename Header::PayloadSize>::min(),
         "Cannot fit the payload in the packet");
   }
-  const Header header{static_cast<typename Header::Payload_size>(payload_size),
+  const Header header{static_cast<typename Header::PayloadSize>(payload_size),
                       header_data};
 
   ssize_t bytes = 0;
   // TODO make it possible to break out of loops if bad header
   // TODO bad cast
-  while (static_cast<size_t>(bytes) < header.get_header_size()) {
+  while (static_cast<size_t>(bytes) < header.header_size()) {
     const auto maybe_bytes =
-        m_transport.write(header.get_const(), Header::get_header_size());
+        transport_.Write(header.get(), Header::header_size());
     if (maybe_bytes.has_value()) {
       bytes += maybe_bytes.value();
     } else {
@@ -248,9 +250,9 @@ Result Connection<TVector, TTransport, THeaderData>::write(
 
   bytes = 0;
   // TODO bad cast
-  while (static_cast<size_t>(bytes) < header.get_payload_size()) {
+  while (static_cast<size_t>(bytes) < header.payload_size()) {
     const auto maybe_bytes =
-        m_transport.write(&payload[bytes], header.get_payload_size() - bytes);
+        transport_.Write(&payload[bytes], header.payload_size() - bytes);
     if (maybe_bytes.has_value()) {
       bytes += maybe_bytes.value();
     } else {
@@ -262,34 +264,34 @@ Result Connection<TVector, TTransport, THeaderData>::write(
 }
 
 template <typename TVector, typename TTransport, typename THeaderData>
-bool Connection<TVector, TTransport, THeaderData>::can_read() const {
-  return m_transport.can_read();
+bool Connection<TVector, TTransport, THeaderData>::CanRead() const {
+  return transport_.CanRead();
 }
 
 template <typename TVector, typename TTransport, typename THeaderData>
-bool Connection<TVector, TTransport, THeaderData>::can_write() const {
-  return m_transport.can_write();
+bool Connection<TVector, TTransport, THeaderData>::CanWrite() const {
+  return transport_.CanWrite();
 }
 
 template <typename TVector, typename TTransport, typename THeaderData>
-bool Connection<TVector, TTransport, THeaderData>::can_accept() const {
-  return m_transport.can_accept();
+bool Connection<TVector, TTransport, THeaderData>::CanAccept() const {
+  return transport_.CanAccept();
 }
 
 template <typename TVector, typename TTransport, typename THeaderData>
-bool Connection<TVector, TTransport, THeaderData>::has_error() const {
-  return m_transport.has_error();
+bool Connection<TVector, TTransport, THeaderData>::HasError() const {
+  return transport_.HasError();
 }
 
 template <typename TVector, typename TTransport, typename THeaderData>
-Result Connection<TVector, TTransport, THeaderData>::start_server(u16 port) {
-  return m_transport.start_server(port);
+Result Connection<TVector, TTransport, THeaderData>::StartServer(u16 port) {
+  return transport_.StartServer(port);
 }
 
 template <typename TVector, typename TTransport, typename THeaderData>
 std::optional<Connection<TVector, TTransport, THeaderData>>
-Connection<TVector, TTransport, THeaderData>::accept() {
-  auto maybe_transport = m_transport.accept();
+Connection<TVector, TTransport, THeaderData>::Accept() {
+  auto maybe_transport = transport_.Accept();
   if (maybe_transport.has_value()) {
     return std::optional<Connection<TVector, TTransport, THeaderData>>{
         Connection(std::move(maybe_transport.value()))};

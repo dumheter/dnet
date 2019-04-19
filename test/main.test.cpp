@@ -3,12 +3,12 @@
 #include "dnet/util/util.hpp"
 
 int main(int argc, char** argv) {
-  dnet::startup();
+  dnet::Startup();
 
   doctest::Context ctx;
   ctx.applyCommandLine(argc, argv);
   const int res = ctx.run();
 
-  dnet::shutdown();
+  dnet::Shutdown();
   return res;
 }

@@ -1,200 +1,192 @@
-// ============================================================ //
-// Headers
-// ============================================================ //
-
 #include "socket.hpp"
-
-// ============================================================ //
-// Class Definition
-// ============================================================ //
 
 namespace dnet {
 
 Socket::Socket(chif_net_protocol proto, chif_net_address_family fam)
-    : m_socket(CHIF_NET_INVALID_SOCKET),
-      m_proto(proto),
-      m_fam(fam),
-      m_last_error(CHIF_NET_RESULT_SUCCESS) {}
+    : socket_(CHIF_NET_INVALID_SOCKET),
+      proto_(proto),
+      af_(fam),
+      last_error_(CHIF_NET_RESULT_SUCCESS) {}
 
 Socket::Socket(Socket&& other) noexcept
-    : m_socket(other.m_socket),
-      m_proto(other.m_proto),
-      m_fam(other.m_fam),
-      m_last_error(other.m_last_error) {
-  other.m_socket = CHIF_NET_INVALID_SOCKET;
+    : socket_(other.socket_),
+      proto_(other.proto_),
+      af_(other.af_),
+      last_error_(other.last_error_) {
+  other.socket_ = CHIF_NET_INVALID_SOCKET;
 }
 
 Socket& Socket::operator=(Socket&& other) noexcept {
   if (this != &other) {
-    m_socket = other.m_socket;
-    m_proto = other.m_proto;
-    m_fam = other.m_fam;
-    m_last_error = other.m_last_error;
-    other.m_socket = CHIF_NET_INVALID_SOCKET;
+    socket_ = other.socket_;
+    proto_ = other.proto_;
+    af_ = other.af_;
+    last_error_ = other.last_error_;
+    other.socket_ = CHIF_NET_INVALID_SOCKET;
   }
   return *this;
 }
 
 Socket::Socket(chif_net_socket sock, chif_net_protocol proto,
                chif_net_address_family fam)
-    : m_socket(sock),
-      m_proto(proto),
-      m_fam(fam),
-      m_last_error(CHIF_NET_RESULT_SUCCESS) {}
+    : socket_(sock),
+      proto_(proto),
+      af_(fam),
+      last_error_(CHIF_NET_RESULT_SUCCESS) {}
 
-Result Socket::open() {
-  const auto res = chif_net_open_socket(&m_socket, m_proto, m_fam);
+Result Socket::Open() {
+  const auto res = chif_net_open_socket(&socket_, proto_, af_);
   if (res != CHIF_NET_RESULT_SUCCESS) {
-    m_last_error = res;
+    last_error_ = res;
   }
   return (res == CHIF_NET_RESULT_SUCCESS ? Result::kSuccess : Result::kFail);
 }
 
-Result Socket::bind(u16 port) {
-  const auto res = chif_net_bind(m_socket, port, m_fam);
+Result Socket::Bind(u16 port) {
+  const auto res = chif_net_bind(socket_, port, af_);
   if (res != CHIF_NET_RESULT_SUCCESS) {
-    m_last_error = res;
+    last_error_ = res;
   }
   return (res == CHIF_NET_RESULT_SUCCESS ? Result::kSuccess : Result::kFail);
 }
 
-Result Socket::listen() {
-  const auto res = chif_net_listen(m_socket, CHIF_NET_DEFAULT_BACKLOG);
+Result Socket::Listen() {
+  const auto res = chif_net_listen(socket_, CHIF_NET_DEFAULT_BACKLOG);
   if (res != CHIF_NET_RESULT_SUCCESS) {
-    m_last_error = res;
+    last_error_ = res;
   }
   return (res == CHIF_NET_RESULT_SUCCESS ? Result::kSuccess : Result::kFail);
 }
 
-std::optional<Socket> Socket::accept() {
+std::optional<Socket> Socket::Accept() {
   chif_net_address cli_address;
   chif_net_socket cli_sock;
-  const auto res = chif_net_accept(m_socket, &cli_address, &cli_sock);
+  const auto res = chif_net_accept(socket_, &cli_address, &cli_sock);
   if (res == CHIF_NET_RESULT_SUCCESS) {
-    return std::optional<Socket>{Socket(cli_sock, m_proto, m_fam)};
+    return std::optional<Socket>{Socket(cli_sock, proto_, af_)};
   }
-  m_last_error = res;
+  last_error_ = res;
   return std::nullopt;
 }
 
-std::optional<ssize_t> Socket::read(u8* buf_out, size_t buflen) {
+std::optional<ssize_t> Socket::Read(u8* buf_out, size_t buflen) {
   ssize_t bytes;
-  const auto res = chif_net_read(m_socket, buf_out, buflen, &bytes);
+  const auto res = chif_net_read(socket_, buf_out, buflen, &bytes);
   if (res == CHIF_NET_RESULT_SUCCESS) {
     return std::optional<ssize_t>{bytes};
   }
-  m_last_error = res;
+  last_error_ = res;
   return std::nullopt;
 }
 
-std::optional<ssize_t> Socket::readfrom(u8* buf_out, size_t buflen,
-                                    const std::string& addr, u16 port) {
+std::optional<ssize_t> Socket::ReadFrom(u8* buf_out, size_t buflen,
+                                        const std::string& addr, u16 port) {
   ssize_t bytes;
   chif_net_address target_addr;
   auto res =
-      chif_net_create_address(&target_addr, addr.c_str(), port, m_fam);
+      chif_net_create_address(&target_addr, addr.c_str(), port, af_);
   if (res == CHIF_NET_RESULT_SUCCESS) {
-    res = chif_net_readfrom(m_socket, buf_out, buflen, &bytes, &target_addr);
+    res = chif_net_readfrom(socket_, buf_out, buflen, &bytes, &target_addr);
     if (res == CHIF_NET_RESULT_SUCCESS) {
       return std::optional<ssize_t>{bytes};
     }
   }
-  m_last_error = res;
+  last_error_ = res;
   return std::nullopt;
 }
 
-std::optional<ssize_t> Socket::write(const u8* buf, size_t len) {
+std::optional<ssize_t> Socket::Write(const u8* buf, size_t buflen) {
   ssize_t bytes;
-  const auto res = chif_net_write(m_socket, buf, len, &bytes);
+  const auto res = chif_net_write(socket_, buf, buflen, &bytes);
   if (res == CHIF_NET_RESULT_SUCCESS) {
     return std::optional<ssize_t>{bytes};
   }
-  m_last_error = res;
+  last_error_ = res;
   return std::nullopt;
 }
 
-std::optional<ssize_t> Socket::writeto(const u8* buf, size_t len,
+std::optional<ssize_t> Socket::WriteTo(const u8* buf, size_t len,
                                        const std::string& addr, u16 port) {
   ssize_t bytes;
   chif_net_address target_addr;
   auto res =
-      chif_net_create_address(&target_addr, addr.c_str(), port, m_fam);
+      chif_net_create_address(&target_addr, addr.c_str(), port, af_);
   if (res == CHIF_NET_RESULT_SUCCESS) {
-    res = chif_net_writeto(m_socket, buf, len, &bytes, &target_addr);
+    res = chif_net_writeto(socket_, buf, len, &bytes, &target_addr);
     if (res == CHIF_NET_RESULT_SUCCESS) {
       return std::optional<ssize_t>{bytes};
     }
   }
-  m_last_error = res;
+  last_error_ = res;
   return std::nullopt;
 }
 
-void Socket::close() { chif_net_close_socket(&m_socket); }
+void Socket::Close() { chif_net_close_socket(&socket_); }
 
-Result Socket::connect(const std::string& address, u16 port) {
+Result Socket::Connect(const std::string& address, u16 port) {
   chif_net_address addr;
   const std::string portstr = std::to_string(port);
   auto res = chif_net_lookup_address(&addr, address.c_str(),
-                                           portstr.c_str(), m_fam, m_proto);
+                                           portstr.c_str(), af_, proto_);
   if (res == CHIF_NET_RESULT_SUCCESS) {
-    if (m_socket != CHIF_NET_INVALID_SOCKET) {
-      chif_net_close_socket(&m_socket);
+    if (socket_ != CHIF_NET_INVALID_SOCKET) {
+      chif_net_close_socket(&socket_);
     }
 
-    res = chif_net_open_socket(&m_socket, m_proto, m_fam);
+    res = chif_net_open_socket(&socket_, proto_, af_);
     if (res == CHIF_NET_RESULT_SUCCESS) {
-      res = chif_net_connect(m_socket, &addr);
+      res = chif_net_connect(socket_, &addr);
       if (res == CHIF_NET_RESULT_SUCCESS) {
         return Result::kSuccess;
       }
     }
   }
 
-  m_last_error = res;
+  last_error_ = res;
   return Result::kFail;
 }
 
-bool Socket::can_write() const {
+bool Socket::CanWrite() const {
   int can;
-  const auto res = chif_net_can_write(m_socket, &can, 0);
+  const auto res = chif_net_can_write(socket_, &can, 0);
   return res == CHIF_NET_RESULT_SUCCESS && can != 0;
 }
 
-bool Socket::can_read() const {
+bool Socket::CanRead() const {
   int can;
-  const auto res = chif_net_can_read(m_socket, &can, 0);
+  const auto res = chif_net_can_read(socket_, &can, 0);
   return res == CHIF_NET_RESULT_SUCCESS && can != 0;
 }
 
-bool Socket::has_error() const {
-  const auto res = chif_net_has_error(m_socket);
+bool Socket::HasError() const {
+  const auto res = chif_net_has_error(socket_);
   return (res != CHIF_NET_RESULT_SUCCESS);
 }
 
-std::optional<std::string> Socket::get_ip() {
+std::optional<std::string> Socket::GetIp() {
   char ip[CHIF_NET_IPVX_STRING_LENGTH];
   const auto res =
-      chif_net_ip_from_socket(m_socket, ip, CHIF_NET_IPVX_STRING_LENGTH);
+      chif_net_ip_from_socket(socket_, ip, CHIF_NET_IPVX_STRING_LENGTH);
   if (res == CHIF_NET_RESULT_SUCCESS) {
     return std::optional<std::string>{std::string(ip)};
   }
-  m_last_error = res;
+  last_error_ = res;
   return std::nullopt;
 }
 
-std::optional<u16> Socket::get_port() {
+std::optional<u16> Socket::GetPort() {
   u16 port;
-  const auto res = chif_net_port_from_socket(m_socket, &port);
+  const auto res = chif_net_port_from_socket(socket_, &port);
   if (res == CHIF_NET_RESULT_SUCCESS) {
     return std::optional<u16>{port};
   }
-  m_last_error = res;
+  last_error_ = res;
   return std::nullopt;
 }
 
-std::tuple<Result, std::string, u16> Socket::get_peer() {
+std::tuple<Result, std::string, u16> Socket::GetPeer() {
   chif_net_address addr;
-  auto res = chif_net_get_peer_address(m_socket, &addr);
+  auto res = chif_net_get_peer_address(socket_, &addr);
   if (res == CHIF_NET_RESULT_SUCCESS) {
     char ip[CHIF_NET_IPVX_STRING_LENGTH];
     res = chif_net_ip_from_address(&addr, ip, CHIF_NET_IPVX_STRING_LENGTH);
@@ -207,22 +199,22 @@ std::tuple<Result, std::string, u16> Socket::get_peer() {
       }
     }
   }
-  m_last_error = res;
+  last_error_ = res;
   return std::tuple<Result, std::string, u16>(Result::kFail, "", 0);
 }
 
-Result Socket::set_reuse_addr(bool reuse) const {
-  const auto res = chif_net_set_reuse_addr(m_socket, reuse);
+Result Socket::SetReuseAddr(bool reuse) const {
+  const auto res = chif_net_set_reuse_addr(socket_, reuse);
   return (res == CHIF_NET_RESULT_SUCCESS ? Result::kSuccess : Result::kFail);
 }
 
-Result Socket::set_blocking(bool blocking) const {
-  const auto res = chif_net_set_socket_blocking(m_socket, blocking);
+Result Socket::SetBlocking(bool blocking) const {
+  const auto res = chif_net_set_socket_blocking(socket_, blocking);
   return (res == CHIF_NET_RESULT_SUCCESS ? Result::kSuccess : Result::kFail);
 }
 
-std::string Socket::last_error_to_string() const {
-  const std::string error_string(chif_net_result_to_string(m_last_error));
+std::string Socket::LastErrorToString() const {
+  const std::string error_string(chif_net_result_to_string(last_error_));
   return error_string;
 }
 

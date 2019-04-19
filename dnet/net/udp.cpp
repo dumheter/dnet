@@ -15,12 +15,12 @@ Udp& Udp::operator=(Udp&& other) noexcept {
 
 Udp::Udp(Socket&& socket) : socket_(std::move(socket)) {}
 
-Result Udp::start_server(u16 port) {
-  Result res = socket_.open();
+Result Udp::StartServer(u16 port) {
+  Result res = socket_.Open();
   if (res == Result::kSuccess) {
-    res = socket_.set_reuse_addr(true);
+    res = socket_.SetReuseAddr(true);
     if (res == Result::kSuccess) {
-      res = socket_.bind(port);
+      res = socket_.Bind(port);
       if (res == Result::kSuccess) {
         return Result::kSuccess;
       }

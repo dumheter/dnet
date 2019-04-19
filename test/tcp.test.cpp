@@ -22,14 +22,14 @@ using TestConnection = dnet::Connection<std::vector<u8>, dnet::Tcp,
 
 static void RunServer(const u16 port, bool& run) {
   TestConnection con{};
-  auto res = con.start_server(port);
+  auto res = con.StartServer(port);
 
   // run server and accept one client
   std::unique_ptr<TestConnection> client;
   bool has_client = false;
   while (run && !has_client) {
-    if (con.can_accept()) {
-      auto maybe_con = con.accept();
+    if (con.CanAccept()) {
+      auto maybe_con = con.Accept();
       CHECK(maybe_con.has_value() == true);
       if (maybe_con.has_value()) {
         client = std::make_unique<TestConnection>(std::move(maybe_con.value()));
@@ -42,7 +42,7 @@ static void RunServer(const u16 port, bool& run) {
   }
   CHECK(res == dnet::Result::kSuccess);
   if (res != dnet::Result::kSuccess) {
-    DLOG_WARNING("last error {}", con.last_error_to_string());
+    DLOG_WARNING("last error {}", con.LastErrorToString());
   }
 
   // run the client
@@ -50,8 +50,8 @@ static void RunServer(const u16 port, bool& run) {
   payload.reserve(2048);
   int packets = 0;
   while (run && res == dnet::Result::kSuccess) {
-    if (client->can_read()) {
-      auto [rres, header_data] = client->read(payload);
+    if (client->CanRead()) {
+      auto [rres, header_data] = client->Read(payload);
       if (rres == dnet::Result::kSuccess) {
         ++packets;
       }
@@ -61,7 +61,7 @@ static void RunServer(const u16 port, bool& run) {
   CHECK(packets == 30300);
   CHECK(res == dnet::Result::kSuccess);
   if (res != dnet::Result::kSuccess) {
-    DLOG_WARNING("last error {}", client->last_error_to_string());
+    DLOG_WARNING("last error {}", client->LastErrorToString());
   }
 }
 
@@ -70,7 +70,7 @@ static void RunClient(const u16 port, bool& run) {
 
   dnet::Result res = dnet::Result::kFail;
   while (run && res != dnet::Result::kSuccess) {
-    res = con.connect("localhost", port);
+    res = con.Connect("localhost", port);
   }
 
   int packets = 30300;
@@ -79,7 +79,7 @@ static void RunClient(const u16 port, bool& run) {
       const std::string msg{"this is a message that I am sending"};
       std::vector<u8> payload{msg.begin(), msg.end()};
       TestHeaderData header_data{};
-      res = con.write(header_data, payload);
+      res = con.Write(header_data, payload);
     }
     else {
       run = false;
@@ -88,7 +88,7 @@ static void RunClient(const u16 port, bool& run) {
 
   CHECK(res == dnet::Result::kSuccess);
   if (res != dnet::Result::kSuccess) {
-    DLOG_WARNING("last error {}", con.last_error_to_string());
+    DLOG_WARNING("last error {}", con.LastErrorToString());
   }
 }
 

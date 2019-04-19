@@ -1,14 +1,11 @@
-// ============================================================ //
-// Headers
-// ============================================================ //
-
-#include "dnet/connection.hpp"
-#include "dnet/net/packet_header.hpp"
-#include "dnet/net/tcp.hpp"
-#include "dnet/util/util.hpp"
-#include "dnet/util/platform.hpp"
-#include "fmt/format.h"
-#include "argparse.h"
+#include <dnet/connection.hpp>
+#include <dnet/net/packet_header.hpp>
+#include <dnet/net/tcp.hpp>
+#include <dnet/util/util.hpp>
+#include <dnet/util/platform.hpp>
+#include <dlog/dlog.hpp>
+#include <fmt/format.h>
+#include <argparse.h>
 #include <thread>
 #include <string>
 #include <cstdlib>
@@ -17,65 +14,10 @@
 #include <vector>
 
 // ============================================================ //
-// Print to console, real nice
-// ============================================================ //
-
-#define cprintln(...) dprintln("client", __VA_ARGS__)
-#define sprintln(...) dprintln("server", __VA_ARGS__)
-#define cprint(...) dprintln("client", __VA_ARGS__)
-#define sprint(...) dprintln("server", __VA_ARGS__)
-
-// print with fmt, prefixed with both function name and line number.
-#define dprint(id, ...) tprint.print((id), __VA_ARGS__)
-#define dprintln(id, ...) tprint.println((id), __VA_ARGS__)
-#define dprintclean(...) tprint.printclean(__VA_ARGS__)
-
-// sorry for template, it's helpful though
-class Print_thread_safe
-{
- private:
-  std::mutex m_mutex{};
-
- public:
-  template <typename ... TArgs>
-  void print(const std::string& id, TArgs... args) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    fmt::print("[{}] ", (id));
-    aux(args...);
-  }
-
-  template <typename ... TArgs>
-  void println(const std::string& id, TArgs... args) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    fmt::print("[{}] ", (id));
-    aux(args...);
-    fmt::print("\n");
-  }
-
-  template <typename ... TArgs>
-  void printclean(TArgs... args) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    aux(args...);
-  }
-
- private:
-  template <typename T>
-  void aux(T t) {
-    fmt::print(t);;
-  }
-
-  template <typename T, typename ... TArgs>
-  void aux(T t, TArgs... args) {
-    fmt::print(t, args...);
-  }
-
-} tprint{};
-
-// ============================================================ //
 // Define our custom header data
 // ============================================================ //
 
-enum class Packet_type : u8
+enum class PacketType : u8
 {
   kHandshake = 0,
   kPing,
@@ -83,31 +25,31 @@ enum class Packet_type : u8
   kShutdown
 };
 
-struct Custom_header_data
+struct CustomHeaderData
 {
-  Packet_type type;
+  PacketType type;
   u32 id;
 };
 
 
-using CustomConnection = dnet::Connection<std::vector<u8>, dnet::Tcp, Custom_header_data>;
+using CustomConnection = dnet::Connection<std::vector<u8>, dnet::Tcp, CustomHeaderData>;
 
-std::string packet_type_to_string(Packet_type type) {
+std::string PacketTypeToString(const PacketType type) {
   std::string str;
   switch (type) {
-    case Packet_type::kHandshake: {
+    case PacketType::kHandshake: {
       str = "Handshake";
       break;
     }
-    case Packet_type::kPing: {
+    case PacketType::kPing: {
       str = "Ping";
       break;
     }
-    case Packet_type::kPong: {
+    case PacketType::kPong: {
       str = "Pong";
       break;
     }
-    case Packet_type::kShutdown: {
+    case PacketType::kShutdown: {
       str = "Shutdown";
       break;
     }
@@ -115,9 +57,9 @@ std::string packet_type_to_string(Packet_type type) {
   return str;
 }
 
-std::string header_data_to_string(Custom_header_data header) {
+std::string HeaderDataToString(const CustomHeaderData header) {
   std::string str{"type:"};
-  str += packet_type_to_string(header.type);
+  str += PacketTypeToString(header.type);
   str += ",id:";
   str += std::to_string(header.id);
   return str;
@@ -128,9 +70,10 @@ std::string header_data_to_string(Custom_header_data header) {
 // ============================================================ //
 
 // hepler function to crash on result fail
-void die_on_fail(dnet::Result res, CustomConnection& con) {
+void DieOnFail(const dnet::Result res, CustomConnection& con) {
   if (res == dnet::Result::kFail) {
-    dprint("die_on_fail", "failed with error [{}]\n", con.last_error_to_string());
+    dlog::tinfo("die_on_fail", "failed with error [{}]",
+                con.LastErrorToString());
     std::cout << std::endl;  // flush
     exit(0);
   }
@@ -140,27 +83,27 @@ void die_on_fail(dnet::Result res, CustomConnection& con) {
 // Client code
 // ============================================================ //
 
-void client(u16 port, const char* ip) {
+void Client(const u16 port, const char* ip) {
 
   //connect to the server
-  cprintln("connecting to {}:{}", ip, port);
+  dlog::tinfo("client", "connecting to {}:{}", ip, port);
   CustomConnection client{};
-  dnet::Result res = client.connect(std::string(ip), port);
-  die_on_fail(res, client);
-  cprintln("connected");
+  dnet::Result res = client.Connect(std::string(ip), port);
+  DieOnFail(res, client);
+  dlog::tinfo("client", "connected");
 
   // sent handshake with empty payload
   {
     std::vector<u8> payload{};
-    Custom_header_data header_data{};
-    header_data.type = Packet_type::kHandshake;
+    CustomHeaderData header_data{};
+    header_data.type = PacketType::kHandshake;
     header_data.id = 1337; // why not
 
     // send the data
-    cprintln("writing handshake");
-    res = client.write(header_data, payload);
-    die_on_fail(res, client);
-    cprintln("wrote [{}|]", header_data_to_string(header_data));
+    dlog::tinfo("client", "writing handshake");
+    res = client.Write(header_data, payload);
+    DieOnFail(res, client);
+    dlog::tinfo("client", "wrote [{}|]", HeaderDataToString(header_data));
   }
 
   // send echo request - ping
@@ -168,24 +111,24 @@ void client(u16 port, const char* ip) {
     // prepare payload and header
     std::string msg("Hey there, from the client.");
     std::vector<u8> payload{msg.begin(), msg.end()};
-    Custom_header_data header_data{};
-    header_data.type = Packet_type::kPing;
+    CustomHeaderData header_data{};
+    header_data.type = PacketType::kPing;
     header_data.id = 55;
 
     // send the data
-    cprintln("writing data");
-    res = client.write(header_data, payload);
-    die_on_fail(res, client);
-    cprintln("wrote [{}|{}]", header_data_to_string(header_data), msg);
+    dlog::tinfo("client", "writing data");
+    res = client.Write(header_data, payload);
+    DieOnFail(res, client);
+    dlog::tinfo("client", "wrote [{}|{}]", HeaderDataToString(header_data), msg);
   }
 
   // wait for echo response - pong
   {
     std::vector<u8> payload{};
-    cprint("waiting for response\n");
-    auto [read_res, header_data] = client.read(payload);
-    die_on_fail(read_res, client);
-    cprintln("read [{}|{}]", header_data_to_string(header_data),
+    dlog::tinfo("client", "waiting for response");
+    auto [read_res, header_data] = client.Read(payload);
+    DieOnFail(read_res, client);
+    dlog::tinfo("client", "read [{}|{}]", HeaderDataToString(header_data),
              std::string(payload.begin(), payload.end()));
   }
 
@@ -193,18 +136,18 @@ void client(u16 port, const char* ip) {
   {
     // prepare payload and header
     std::vector<u8> payload{};
-    Custom_header_data header_data{};
-    header_data.type = Packet_type::kShutdown;
+    CustomHeaderData header_data{};
+    header_data.type = PacketType::kShutdown;
     header_data.id = 0;
 
     // send the data
-    cprintln("writing data");
-    res = client.write(header_data, payload);
-    die_on_fail(res, client);
-    cprintln("wrote [{}|]", header_data_to_string(header_data));
+    dlog::tinfo("client", "writing data");
+    res = client.Write(header_data, payload);
+    DieOnFail(res, client);
+    dlog::tinfo("client", "wrote [{}|]", HeaderDataToString(header_data));
   }
 
-  client.disconnect();
+  client.Disconnect();
 }
 
 // ============================================================ //
@@ -212,13 +155,13 @@ void client(u16 port, const char* ip) {
 // ============================================================ //
 
 // when a new client connects, this function will be run on a new thread
-void serve(CustomConnection client, bool& run_server)
+void Serve(CustomConnection client, bool& run_server)
 {
   // get port
-  const auto [got_peer, peer_ip, peer_port] = client.get_peer();
+  const auto [got_peer, peer_ip, peer_port] = client.GetPeer();
   if (got_peer != dnet::Result::kSuccess) {
-    sprintln("failed to get peer address with error [{}]",
-           client.last_error_to_string());
+    dlog::terror("serve", "failed to get peer address with error [{}]",
+             client.LastErrorToString());
     return;
   }
 
@@ -227,17 +170,17 @@ void serve(CustomConnection client, bool& run_server)
 
   // wait for handshake packet
   {
-    sprintln("[port:{}] waiting for handshake", peer_port);
-    auto [res, header_data] = client.read(payload);
+    dlog::tinfo("serve", "[port:{}] waiting for handshake", peer_port);
+    auto [res, header_data] = client.Read(payload);
     if (res == dnet::Result::kSuccess &&
-        header_data.type == Packet_type::kHandshake) {
-      sprintln("[port:{}] read [{}|{}] - handshake success", peer_port,
-               header_data_to_string(header_data),
+        header_data.type == PacketType::kHandshake) {
+      dlog::tinfo("client", "[port:{}] read [{}|{}] - handshake success", peer_port,
+               HeaderDataToString(header_data),
                std::string(payload.begin(), payload.end()));
     }
     else {
-      sprintln("failed to read handshake, closing client");
-      client.disconnect();
+      dlog::twarning("serve", "failed to read handshake, closing client");
+      client.Disconnect();
       run = false;
     }
   }
@@ -246,43 +189,44 @@ void serve(CustomConnection client, bool& run_server)
   while (run) {
 
     // wait for packet
-    sprintln("[port:{}] waiting for packet", peer_port);
-    auto [res, header_data] = client.read(payload);
+    dlog::tinfo("serve", "[port:{}] waiting for packet", peer_port);
+    auto [res, header_data] = client.Read(payload);
     if (res == dnet::Result::kSuccess) {
 
       // print packet
-      sprintln("[port:{}] read [{}|{}]", peer_port,
-               header_data_to_string(header_data),
+      dlog::tinfo("serve", "[port:{}] read [{}|{}]", peer_port,
+               HeaderDataToString(header_data),
                std::string(payload.begin(), payload.end()));
 
       // respond depending on packet type
       switch (header_data.type) {
-        case Packet_type::kHandshake: {
-          sprintln("[port:{}] handshake noop at this point", peer_port);
+        case PacketType::kHandshake: {
+          dlog::tinfo("serve", "[port:{}] handshake noop at this point", peer_port);
           break;
         }
-        case Packet_type::kPing: {
-          Custom_header_data header_data_pong{};
-          header_data_pong.type = Packet_type::kPong;
+        case PacketType::kPing: {
+          CustomHeaderData header_data_pong{};
+          header_data_pong.type = PacketType::kPong;
           header_data_pong.id = 0;
 
-          sprintln("[port:{}] echoing back the message", peer_port);
-          res = client.write(header_data_pong, payload);
+          dlog::tinfo("serve", "[port:{}] echoing back the message", peer_port);
+          res = client.Write(header_data_pong, payload);
           if (res != dnet::Result::kSuccess) {
-            sprint("[port:{}] failed to write with error [{}]\n",
-                   peer_port, client.last_error_to_string());
+            dlog::tinfo("serve", "[port:{}] failed to write with error [{}]",
+                   peer_port,
+                   client.LastErrorToString());
             run = false;
           }
           break;
         }
-        case Packet_type::kPong: {
-          sprintln("[port:{}] pong not implemented", peer_port);
+        case PacketType::kPong: {
+          dlog::tinfo("serve", "[port:{}] pong not implemented", peer_port);
           break;
         }
-        case Packet_type::kShutdown: {
+        case PacketType::kShutdown: {
           run_server = false;
           run = false;
-          client.disconnect();
+          client.Disconnect();
           break;
         }
       }
@@ -290,48 +234,50 @@ void serve(CustomConnection client, bool& run_server)
 
     }
     else {
-      sprint("[port:{}] failed to read with error [{}]\n",
-             peer_port, client.last_error_to_string());
+      dlog::twarning("server", "[port:{}] failed to read with error [{}]\n",
+             peer_port,
+             client.LastErrorToString());
       run = false;
     }
   }
 }
 
 // listen for connections on main thread
-void run_server(u16 port)
+void RunServer(const u16 port)
 {
   // start the server
-  sprint("starting server\n");
+  dlog::tinfo("server", "starting server");
   CustomConnection server{};
-  dnet::Result res = server.start_server(port);
-  die_on_fail(res, server);
-  sprint("server running @ {}:{}\n", server.get_ip().value_or("error"),
-         server.get_port().value_or(0));
+  dnet::Result res = server.StartServer(port);
+  DieOnFail(res, server);
+  dlog::tinfo("server", "server running @ {}:{}\n", server.GetIp().value_or("error"),
+         server.GetPort().value_or(0));
 
-  sprint("waiting for client\n");
+  dlog::tinfo("server", "waiting for client\n");
   bool run = true;
   while (run) {
 
     // wait for client to connect
-    if (server.can_accept()) {
-      auto maybe_client = server.accept();
+    if (server.CanAccept()) {
+      auto maybe_client = server.Accept();
       if (maybe_client.has_value()) {
-        const auto [got_peer, peer_ip, peer_port] = maybe_client.value().get_peer();
+        const auto [got_peer, peer_ip, peer_port] =
+            maybe_client.value().GetPeer();
         if (got_peer == dnet::Result::kSuccess) {
-          sprint("new client from {}:{}\n", peer_ip, peer_port);
+          dlog::tinfo("server", "new client from {}:{}\n", peer_ip, peer_port);
 
           // handle the client on a seperate thread
-          std::thread t(serve, std::move(maybe_client.value()), std::ref(run));
+          std::thread t(Serve, std::move(maybe_client.value()), std::ref(run));
           t.detach();
         }
         else {
-          sprint("failed to get peer with error [{}]\n",
-                 server.last_error_to_string());
+          dlog::tinfo("server", "failed to get peer with error [{}]\n",
+                 server.LastErrorToString());
         }
       }
       else {
-        sprint("failed to accept client with error [{}]\n",
-               server.last_error_to_string());
+        dlog::tinfo("server", "failed to accept client with error [{}]\n",
+               server.LastErrorToString());
       }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -362,23 +308,23 @@ int main(int argc, const char** argv) {
 
   if (port < std::numeric_limits<u16>::min() ||
       port > std::numeric_limits<u16>::max()) {
-    dprint("main", "invalid port provided, must be in the range [{}-{}]\n",
+    dlog::tinfo("main", "invalid port provided, must be in the range [{}-{}]",
            std::numeric_limits<u16>::min(), std::numeric_limits<u16>::max());
     return 1;
   }
 
   if (!port) port = 1337;
 
-  dnet::startup();
-  std::thread server_thread(run_server, static_cast<u16>(port));
+  dnet::Startup();
+  std::thread server_thread(RunServer, static_cast<u16>(port));
 
-  cprintln("sleeping for 10 ms to let server start");
+  dlog::tinfo("main", "sleeping for 10 ms to let server start");
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  client(static_cast<u16>(port), "127.0.0.1");
+  Client(static_cast<u16>(port), "127.0.0.1");
 
   server_thread.join();
 
-  dprintln("main", "sever and client closed successfully");
+  dlog::tinfo("main", "sever and client closed successfully");
 
   // windows will instantly close the terminal window, prevent that
 #ifdef DNET_PLATFORM_WINDOWS
@@ -387,7 +333,7 @@ int main(int argc, const char** argv) {
   std::cin >> f;
 #endif
 
-  dnet::shutdown();
+  dnet::Shutdown();
 
   return 0;
 }

@@ -1,7 +1,3 @@
-// ============================================================ //
-// Headers
-// ============================================================ //
-
 #include <dnet/connection.hpp>
 #include <dnet/net/packet_header.hpp>
 #include <dnet/net/tcp.hpp>
@@ -36,9 +32,9 @@ using EchoConnection = dnet::Connection<std::vector<u8>, dnet::Tcp>;
 // ============================================================ //
 
 // hepler function to crash on result fail
-void die_on_fail(dnet::Result res, EchoConnection& con) {
+void DieOnFail(dnet::Result res, EchoConnection& con) {
   if (res == dnet::Result::kFail) {
-    dprint("failed with error [{}]\n", con.last_error_to_string());
+    dprint("failed with error [{}]\n", con.LastErrorToString());
     std::cout << std::endl;  // flush
     exit(0);
   }
@@ -46,29 +42,29 @@ void die_on_fail(dnet::Result res, EchoConnection& con) {
 
 // ============================================================ //
 
-void echo_client(u16 port, const char* ip) {
+void EchoClient(u16 port, const char* ip) {
   //connect to the server
   dprint("connecting to {}:{}\n", ip, port);
   EchoConnection client{};
-  dnet::Result res = client.connect(std::string(ip), port);
-  die_on_fail(res, client);
+  dnet::Result res = client.Connect(std::string(ip), port);
+  DieOnFail(res, client);
   dprint("connected\n");
 
   // prepare payload and header
   std::string msg("Hey there, from the client.");
   std::vector<u8> payload{msg.begin(), msg.end()};
-  dnet::Header_data_example header_data{}; // use the default header data
+  dnet::HeaderDataExample header_data{}; // use the default header data
 
   // send the data
   dprint("writing data\n");
-  res = client.write(header_data, payload);
-  die_on_fail(res, client);
+  res = client.Write(header_data, payload);
+  DieOnFail(res, client);
   dprint("wrote [{}]\n", msg);
 
   // read response
   dprint("waiting for response\n");
-  auto [read_res, header_data_read] = client.read(payload);
-  die_on_fail(read_res, client);
+  auto [read_res, header_data_read] = client.Read(payload);
+  DieOnFail(read_res, client);
   dprint("read [{}]\n", std::string(payload.begin(), payload.end()));
 
   // connection will be closed when client is destructed
@@ -101,9 +97,9 @@ int main(int argc, const char** argv) {
     return 1;
   }
 
-  dnet::startup();
-  echo_client(static_cast<u16>(port), ip);
-  dnet::shutdown();
+  dnet::Startup();
+  EchoClient(static_cast<u16>(port), ip);
+  dnet::Shutdown();
 
   // windows will instantly close the terminal window, prevent that
 #ifdef DNET_PLATFORM_WINDOWS

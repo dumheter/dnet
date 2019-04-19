@@ -42,9 +42,9 @@ set(IO_SOURCE
   thirdparty/argparse/argparse.c
   thirdparty/fmt/src/format.cc
   )
+aux_source_directory(thirdparty/dutil IO_SOURCE)
+aux_source_directory(thirdparty/dlog IO_SOURCE)
 
-aux_source_directory(thirdparty/dutil TEST_SOURCE)
-aux_source_directory(thirdparty/dlog TEST_SOURCE)
 aux_source_directory(test TEST_SOURCE)
 
 
@@ -56,6 +56,7 @@ add_executable(echo_client examples/echo_client.cpp ${COMMON_SOURCE}
   ${IO_SOURCE})
 add_executable(custom_header_data examples/custom_header_data.cpp
   ${COMMON_SOURCE} ${IO_SOURCE})
+add_compile_definitions(coustom_header_data DLOG_MT)
 
 add_executable(test ${TEST_SOURCE} ${IO_SOURCE} ${COMMON_SOURCE})
 

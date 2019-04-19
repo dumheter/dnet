@@ -49,60 +49,56 @@ class Udp {
  private:
   explicit Udp(Socket&& socket);
 
-  // ============================================================ //
-
  public:
-  Result start_server(u16 port);
+  Result StartServer(u16 port);
 
   // TODO
-  //std::optional<Udp> accept() {};
+  //std::optional<Udp> Accept() {};
 
-  Result connect(const std::string& address, u16 port) {
-    return socket_.connect(address, port);
+  Result Connect(const std::string& address, u16 port) {
+    return socket_.Connect(address, port);
   }
 
-  void disconnect() { socket_.close(); }
+  void Disconnect() { socket_.Close(); }
 
-  std::optional<ssize_t> read(u8* buf_out, size_t buflen) {
-    return socket_.read(buf_out, buflen);
+  std::optional<ssize_t> Read(u8* buf_out, size_t buflen) {
+    return socket_.Read(buf_out, buflen);
   };
 
-  std::optional<ssize_t> write(const u8* buf, size_t buflen) {
-    return socket_.write(buf, buflen);
+  std::optional<ssize_t> Write(const u8* buf, size_t buflen) {
+    return socket_.Write(buf, buflen);
   };
 
-  bool can_write() const { return socket_.can_write(); }
+  bool CanWrite() const { return socket_.CanWrite(); }
 
-  bool can_read() const { return socket_.can_read(); }
+  bool CanRead() const { return socket_.CanRead(); }
 
   // TODO
-  //bool can_accept() const { return socket_.can_read(); }
+  //bool CanAccept() const { return socket_.CanRead(); }
 
-  bool has_error() const { return socket_.has_error(); }
+  bool HasError() const { return socket_.HasError(); }
 
-  std::optional<std::string> get_ip() { return socket_.get_ip(); }
+  std::optional<std::string> GetIp() { return socket_.GetIp(); }
 
-  std::optional<u16> get_port() { return socket_.get_port(); }
+  std::optional<u16> GetPort() { return socket_.GetPort(); }
 
   // TODO
   /**
    * @return Result of the call, Ip and port of peer.
    */
-  std::tuple<Result, std::string, u16> get_peer() { return socket_.get_peer(); }
+  std::tuple<Result, std::string, u16> GetPeer() { return socket_.GetPeer(); }
 
   /**
    * If a Result comes back as kFail, or std::optional as std::nullopt, an
    * error will be set. Use this function to access the error string.
    */
-  std::string last_error_to_string() const {
-    return socket_.last_error_to_string();
+  std::string LastErrorToString() const {
+    return socket_.LastErrorToString();
   }
 
-  Result set_blocking(bool blocking) const {
-    return socket_.set_blocking(blocking);
+  Result SetBlocking(bool blocking) const {
+    return socket_.SetBlocking(blocking);
   }
-
-  // ============================================================ //
 
  private:
   Socket socket_;

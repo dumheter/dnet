@@ -7,13 +7,13 @@
 
 namespace dnet {
 
-bool set_nofd_soft_limit(int limit) {
+bool SetNofdSoftLimit(int limit) {
 #if defined(DNET_PLATFORM_WINDOWS)
   (void)limit;
   assert(!"not implemented");
   return false;
 #else
-  struct rlimit rlp;
+  rlimit rlp{};
   auto res = getrlimit(RLIMIT_NOFILE, &rlp);
   if (res != 0) return false;
 
@@ -23,12 +23,12 @@ bool set_nofd_soft_limit(int limit) {
 #endif
 }
 
-int get_nofd_soft_limit() {
+int GetNofdSoftLimit() {
 #if defined(DNET_PLATFORM_WINDOWS)
   assert(!"not implemented");
   return -1;
 #else
-  struct rlimit rlp;
+  rlimit rlp{};
   auto res = getrlimit(RLIMIT_NOFILE, &rlp);
   if (res != 0)
     return -1;
@@ -37,12 +37,12 @@ int get_nofd_soft_limit() {
 #endif
 }
 
-int get_nofd_hard_limit() {
+int GetNofdHardLimit() {
 #if defined(DNET_PLATFORM_WINDOWS)
   assert(!"not implemented");
   return -1;
 #else
-  struct rlimit rlp;
+  rlimit rlp{};
   auto res = getrlimit(RLIMIT_NOFILE, &rlp);
   if (res != 0)
     return -1;
