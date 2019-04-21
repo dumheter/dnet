@@ -2,9 +2,8 @@
 #include <fmt/format.h>
 #include <cstdlib>
 #include <dlog/dlog.hpp>
-#include <dnet/connection.hpp>
+#include <dnet/tcp_connection.hpp>
 #include <dnet/net/packet_header.hpp>
-#include <dnet/net/tcp.hpp>
 #include <dnet/util/platform.hpp>
 #include <dnet/util/util.hpp>
 #include <iostream>
@@ -25,7 +24,7 @@ struct CustomHeaderData {
 };
 
 using CustomConnection =
-    dnet::Connection<std::vector<u8>, dnet::Tcp, CustomHeaderData>;
+    dnet::TcpConnection<std::vector<u8>, CustomHeaderData>;
 
 std::string PacketTypeToString(const PacketType type) {
   std::string str;

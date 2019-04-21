@@ -4,7 +4,7 @@ Have you been looking for an easy to use networking library for c++17? You've co
 ## Usage
 minimal working server:
 ```cpp
-dnet::Connection<dnet::Tcp> server{};
+dnet::TcpConnection<dnet::Tcp> server{};
 server.StartServer(port);
 
 auto maybe_client = server.Accept();
@@ -23,7 +23,7 @@ if (maybe_client.has_value()) {
 
 minimal working client:
 ```cpp
-dnet::Connection<dnet::Tcp> client{};
+dnet::TcpConnection<dnet::Tcp> client{};
 client.Connect(ip, port);
 
 dnet::payload_container payload{};

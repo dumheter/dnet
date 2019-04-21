@@ -22,10 +22,11 @@
  * SOFTWARE.
  */
 
-#ifndef CONNECTION_HPP_
-#define CONNECTION_HPP_
+#ifndef TCP_CONNECTION_HPP_
+#define TCP_CONNECTION_HPP_
 
 #include <dnet/net/packet_header.hpp>
+#include <dnet/net/tcp.hpp>
 #include <dnet/util/dnet_assert.hpp>
 #include <dnet/util/result.hpp>
 #include <dnet/util/types.hpp>
@@ -40,13 +41,11 @@ namespace dnet {
 /**
  * TODO Make payload container be part of the template?
  * @tparam TVector A container that has the functionality of std::vector<u8>.
- * @tparam TTransport
  * @tparam THeaderData Provide your own data in the header! Note, packet size is
  * handled internally.
  */
-template <typename TVector, typename TTransport,
-          typename THeaderData = HeaderDataExample>
-class Connection {
+template <typename TVector, typename THeaderData = HeaderDataExample>
+class TcpConnection {
  public:
   static_assert(std::is_standard_layout<THeaderData>::value,
                 "THeaderData must be trivial (C struct) in order to serialize "
@@ -58,17 +57,17 @@ class Connection {
   // Lifetime
   // ====================================================================== //
 
-  Connection();
-  explicit Connection(TTransport&& transport);
+  TcpConnection();
+  explicit TcpConnection(Tcp&& transport);
 
   // no copy
-  Connection(const Connection& other) = delete;
-  Connection& operator=(const Connection& other) = delete;
+  TcpConnection(const TcpConnection& other) = delete;
+  TcpConnection& operator=(const TcpConnection& other) = delete;
 
-  Connection(Connection&& other) noexcept;
-  Connection& operator=(Connection&& other) noexcept;
+  TcpConnection(TcpConnection&& other) noexcept;
+  TcpConnection& operator=(TcpConnection&& other) noexcept;
 
-  ~Connection() = default;
+  ~TcpConnection() = default;
 
   // ====================================================================== //
   // Client methods
@@ -98,7 +97,7 @@ class Connection {
 
   Result StartServer(u16 port);
 
-  std::optional<Connection> Accept();
+  std::optional<TcpConnection> Accept();
 
   /**
    * @return Any error occured while attempting to check, will return false.
@@ -139,52 +138,52 @@ class Connection {
   // ====================================================================== //
 
  private:
-  TTransport transport_;
+  Tcp transport_;
 };
 
 // ====================================================================== //
 // template definition
 // ====================================================================== //
 
-template <typename TVector, typename TTransport, typename THeaderData>
-Connection<TVector, TTransport, THeaderData>::Connection() : transport_() {}
+template <typename TVector, typename THeaderData>
+TcpConnection<TVector, THeaderData>::TcpConnection() : transport_() {}
 
 // TODO use std::forward here?
-template <typename TVector, typename TTransport, typename THeaderData>
-Connection<TVector, TTransport, THeaderData>::Connection(TTransport&& transport)
+template <typename TVector, typename THeaderData>
+TcpConnection<TVector, THeaderData>::TcpConnection(Tcp&& transport)
     : transport_(std::move(transport)) {}
 
-template <typename TVector, typename TTransport, typename THeaderData>
-Connection<TVector, TTransport, THeaderData>::Connection(
-    Connection<TVector, TTransport, THeaderData>&& other) noexcept
+template <typename TVector, typename THeaderData>
+TcpConnection<TVector, THeaderData>::TcpConnection(
+    TcpConnection<TVector, THeaderData>&& other) noexcept
     : transport_(std::move(other.transport_)) {}
 
-template <typename TVector, typename TTransport, typename THeaderData>
-Connection<TVector, TTransport, THeaderData>&
-Connection<TVector, TTransport, THeaderData>::operator=(
-    Connection<TVector, TTransport, THeaderData>&& other) noexcept {
+template <typename TVector, typename THeaderData>
+TcpConnection<TVector, THeaderData>&
+TcpConnection<TVector, THeaderData>::operator=(
+    TcpConnection<TVector, THeaderData>&& other) noexcept {
   if (&other != this) {
     transport_ = std::move(other.transport_);
   }
   return *this;
 }
 
-template <typename TVector, typename TTransport, typename THeaderData>
-Result Connection<TVector, TTransport, THeaderData>::Connect(
+template <typename TVector, typename THeaderData>
+Result TcpConnection<TVector, THeaderData>::Connect(
     const std::string& address, u16 port) {
   return transport_.Connect(address, port);
 }
 
-template <typename TVector, typename TTransport, typename THeaderData>
-void Connection<TVector, TTransport, THeaderData>::Disconnect() {
+template <typename TVector, typename THeaderData>
+void TcpConnection<TVector, THeaderData>::Disconnect() {
   transport_.Disconnect();
 }
 
 // TODO go over the types used
 // TODO utilize NRVO
-template <typename TVector, typename TTransport, typename THeaderData>
+template <typename TVector, typename THeaderData>
 std::tuple<Result, THeaderData>
-Connection<TVector, TTransport, THeaderData>::Read(TVector& payload_out) {
+TcpConnection<TVector, THeaderData>::Read(TVector& payload_out) {
   Header header{};
   ssize_t bytes = 0;
   // TODO make it possible to break out of loops if bad header
@@ -222,8 +221,8 @@ Connection<TVector, TTransport, THeaderData>::Read(TVector& payload_out) {
 }
 
 // TODO utilize NRVO
-template <typename TVector, typename TTransport, typename THeaderData>
-Result Connection<TVector, TTransport, THeaderData>::Write(
+template <typename TVector, typename THeaderData>
+Result TcpConnection<TVector, THeaderData>::Write(
     const THeaderData& header_data, const TVector& payload) {
   const auto payload_size = payload.size();
   if (payload_size > std::numeric_limits<typename Header::PayloadSize>::max() ||
@@ -268,42 +267,42 @@ Result Connection<TVector, TTransport, THeaderData>::Write(
   return Result::kSuccess;
 }
 
-template <typename TVector, typename TTransport, typename THeaderData>
-bool Connection<TVector, TTransport, THeaderData>::CanRead() const {
+template <typename TVector, typename THeaderData>
+bool TcpConnection<TVector, THeaderData>::CanRead() const {
   return transport_.CanRead();
 }
 
-template <typename TVector, typename TTransport, typename THeaderData>
-bool Connection<TVector, TTransport, THeaderData>::CanWrite() const {
+template <typename TVector, typename THeaderData>
+bool TcpConnection<TVector, THeaderData>::CanWrite() const {
   return transport_.CanWrite();
 }
 
-template <typename TVector, typename TTransport, typename THeaderData>
-bool Connection<TVector, TTransport, THeaderData>::CanAccept() const {
+template <typename TVector, typename THeaderData>
+bool TcpConnection<TVector, THeaderData>::CanAccept() const {
   return transport_.CanAccept();
 }
 
-template <typename TVector, typename TTransport, typename THeaderData>
-bool Connection<TVector, TTransport, THeaderData>::HasError() const {
+template <typename TVector, typename THeaderData>
+bool TcpConnection<TVector, THeaderData>::HasError() const {
   return transport_.HasError();
 }
 
-template <typename TVector, typename TTransport, typename THeaderData>
-Result Connection<TVector, TTransport, THeaderData>::StartServer(u16 port) {
+template <typename TVector, typename THeaderData>
+Result TcpConnection<TVector, THeaderData>::StartServer(u16 port) {
   return transport_.StartServer(port);
 }
 
-template <typename TVector, typename TTransport, typename THeaderData>
-std::optional<Connection<TVector, TTransport, THeaderData>>
-Connection<TVector, TTransport, THeaderData>::Accept() {
+template <typename TVector, typename THeaderData>
+std::optional<TcpConnection<TVector, THeaderData>>
+TcpConnection<TVector, THeaderData>::Accept() {
   auto maybe_transport = transport_.Accept();
   if (maybe_transport.has_value()) {
-    return std::optional<Connection<TVector, TTransport, THeaderData>>{
-        Connection(std::move(maybe_transport.value()))};
+    return std::optional<TcpConnection<TVector, THeaderData>>{
+        TcpConnection(std::move(maybe_transport.value()))};
   }
   return std::nullopt;
 }
 
 }  // namespace dnet
 
-#endif  // CONNECTION_HPP_
+#endif  // TCP_CONNECTION_HPP_

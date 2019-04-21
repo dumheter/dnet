@@ -22,7 +22,7 @@ endif ()
 
 
 set(COMMON_SOURCE
-  dnet/connection.hpp
+  dnet/tcp_connection.hpp
   dnet/net/packet_header.hpp
   dnet/net/socket.cpp
   dnet/net/socket.hpp

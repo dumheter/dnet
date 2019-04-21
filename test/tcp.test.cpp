@@ -1,7 +1,6 @@
 #include <doctest.h>
 #include <dlog/dlog.hpp>
-#include <dnet/connection.hpp>
-#include <dnet/net/tcp.hpp>
+#include <dnet/tcp_connection.hpp>
 #include <dnet/util/types.hpp>
 #include <dutil/stopwatch.hpp>
 #include <memory>
@@ -13,7 +12,7 @@ struct TestHeaderData {
 };
 
 using TestConnection =
-    dnet::Connection<std::vector<u8>, dnet::Tcp, TestHeaderData>;
+    dnet::TcpConnection<std::vector<u8>, TestHeaderData>;
 
 // ============================================================ //
 // Basic tcp test - send 300 packets

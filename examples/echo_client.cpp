@@ -1,7 +1,7 @@
 #include <argparse.h>
 #include <fmt/format.h>
 #include <cstdlib>
-#include <dnet/connection.hpp>
+#include <dnet/tcp_connection.hpp>
 #include <dnet/net/packet_header.hpp>
 #include <dnet/net/tcp.hpp>
 #include <dnet/util/platform.hpp>
@@ -27,7 +27,7 @@
 
 // ============================================================ //
 
-using EchoConnection = dnet::Connection<std::vector<u8>, dnet::Tcp>;
+using EchoConnection = dnet::TcpConnection<std::vector<u8>>;
 
 // ============================================================ //
 
