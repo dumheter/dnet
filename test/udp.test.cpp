@@ -1,6 +1,7 @@
 #include <doctest.h>
 #include <dlog/dlog.hpp>
 #include <dnet/net/udp.hpp>
+#include <dnet/tcp_connection.hpp>
 #include <dnet/util/types.hpp>
 #include <dutil/stopwatch.hpp>
 #include <thread>
@@ -47,7 +48,7 @@ std::string HeaderDataToString(const TestHeaderData& header_data) {
 }
 
 using TestConnection =
-    dnet::TcpConnection<std::vector<u8>, dnet::Udp, TestHeaderData>;
+    dnet::TcpConnection<std::vector<u8>, TestHeaderData>;
 
 // ============================================================ //
 

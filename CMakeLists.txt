@@ -56,7 +56,7 @@ add_executable(echo_client examples/echo_client.cpp ${COMMON_SOURCE}
   ${IO_SOURCE})
 add_executable(custom_header_data examples/custom_header_data.cpp
   ${COMMON_SOURCE} ${IO_SOURCE})
-add_compile_definitions(coustom_header_data DLOG_MT)
+add_compile_definitions(coustom_header_data DLOG_MT DLOG_TIMESTAMP)
 
 add_executable(test ${TEST_SOURCE} ${IO_SOURCE} ${COMMON_SOURCE})
 
