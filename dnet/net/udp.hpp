@@ -60,10 +60,16 @@ class Udp {
 
   void Disconnect() { socket_.Close(); }
 
+  /**
+   * @return Amount of read bytes, or nullopt on failure.
+   */
   std::optional<ssize_t> Read(u8* buf_out, size_t buflen) {
     return socket_.Read(buf_out, buflen);
   };
 
+  /**
+   * @return Amount of written bytes, or nullopt on failure.
+   */
   std::optional<ssize_t> Write(const u8* buf, size_t buflen) {
     return socket_.Write(buf, buflen);
   };
