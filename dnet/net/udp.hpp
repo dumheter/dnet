@@ -49,12 +49,17 @@ class Udp {
   explicit Udp(Socket&& socket);
 
  public:
-  Result StartServer(u16 port);
 
-  // TODO
-  // std::optional<Udp> Accept() {};
+  /**
+   * Start listening on @port. Will also open the socket.
+   */
+  Result StartServer(const u16 port);
 
-  Result Connect(const std::string& address, u16 port) {
+  Result Open() {
+    return socket_.Open();
+  }
+
+  Result Connect(const std::string& address, const u16 port) {
     return socket_.Connect(address, port);
   }
 
@@ -63,23 +68,30 @@ class Udp {
   /**
    * @return Amount of read bytes, or nullopt on failure.
    */
-  std::optional<ssize_t> Read(u8* buf_out, size_t buflen) {
+  std::optional<ssize_t> Read(u8* buf_out, const size_t buflen) {
     return socket_.Read(buf_out, buflen);
   };
+
+  std::optional<ssize_t> ReadFrom(u8* buf_out, const size_t buflen,
+                                  std::string& addr_out, u16& port_out) {
+    return socket_.ReadFrom(buf_out, buflen, addr_out, port_out);
+  }
 
   /**
    * @return Amount of written bytes, or nullopt on failure.
    */
-  std::optional<ssize_t> Write(const u8* buf, size_t buflen) {
+  std::optional<ssize_t> Write(const u8* buf, const size_t buflen) {
     return socket_.Write(buf, buflen);
   };
+
+  std::optional<ssize_t> WriteTo(const u8* buf, const size_t buflen,
+                                 const std::string& addr, const u16 port) {
+    return socket_.WriteTo(buf, buflen, addr, port);
+  }
 
   bool CanWrite() const { return socket_.CanWrite(); }
 
   bool CanRead() const { return socket_.CanRead(); }
-
-  // TODO
-  // bool CanAccept() const { return socket_.CanRead(); }
 
   bool HasError() const { return socket_.HasError(); }
 
@@ -87,7 +99,6 @@ class Udp {
 
   std::optional<u16> GetPort() { return socket_.GetPort(); }
 
-  // TODO
   /**
    * @return Result of the call, Ip and port of peer.
    */
@@ -99,7 +110,7 @@ class Udp {
    */
   std::string LastErrorToString() const { return socket_.LastErrorToString(); }
 
-  Result SetBlocking(bool blocking) const {
+  Result SetBlocking(const bool blocking) const {
     return socket_.SetBlocking(blocking);
   }
 

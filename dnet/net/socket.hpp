@@ -50,13 +50,13 @@ class Socket {
   /*
    * Create a Socket from an existing open chif_net_socket
    */
-  Socket(chif_net_socket sock, chif_net_protocol proto,
-         chif_net_address_family fam);
+  Socket(chif_net_socket sock, const chif_net_protocol proto,
+         const chif_net_address_family fam);
 
  public:
   Result Open();
 
-  Result Bind(u16 port);
+  Result Bind(const u16 port);
 
   Result Listen();
 
@@ -65,17 +65,20 @@ class Socket {
   /**
    * @return Amount of read bytes, or nullopt on failure.
    */
-  std::optional<ssize_t> Read(u8* buf_out, size_t buflen);
+  std::optional<ssize_t> Read(u8* buf_out, const size_t buflen);
 
-  std::optional<ssize_t> ReadFrom(u8* buf_out, size_t buflen,
-                                  const std::string& addr, u16 port);
+  /**
+   * Places the address and port in the addr_out and port_out fields.
+   */
+  std::optional<ssize_t> ReadFrom(u8* buf_out, const size_t buflen,
+                                  std::string& addr_out, u16& port_out);
   /**
    * @return Amount of written bytes, or nullopt on failure.
    */
-  std::optional<ssize_t> Write(const u8* buf, size_t buflen);
+  std::optional<ssize_t> Write(const u8* buf, const size_t buflen);
 
-  std::optional<ssize_t> WriteTo(const u8* buf, size_t len,
-                                 const std::string& addr, u16 port);
+  std::optional<ssize_t> WriteTo(const u8* buf, const size_t buflen,
+                                 const std::string& addr, const u16 port);
   void Close();
 
   Result Connect(const std::string& address, u16 port);

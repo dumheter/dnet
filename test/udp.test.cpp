@@ -172,8 +172,8 @@ TEST_CASE("udp big packet") {
         }
       }
 
+      // fail to send second, too big, packet
       {
-        // fail to send second, too big, packet
         payload.push_back(1);
         const auto maybe_bytes = con.Write(payload.data(), payload.size());
         CHECK(!maybe_bytes.has_value());
@@ -230,4 +230,52 @@ TEST_CASE("udp big packet") {
   client_thread.join();
 
   CHECK(packets == 2);
+}
+
+TEST_CASE("ReadFrom and WriteTo") {
+  const u16 port = 2050;
+  dnet::Udp server{};
+  auto res = server.StartServer(port);
+  CHECK(res == dnet::Result::kSuccess);
+  if (res == dnet::Result::kSuccess) {
+
+    // WriteTo client -> server
+    dnet::Udp client{};
+    client.Open();
+    std::string msg{"hey from client"};
+    auto written = client.WriteTo(reinterpret_cast<const u8*>(msg.data()),
+                                  msg.size(), "localhost", port);
+    REQUIRE(written.has_value());
+    CHECK(msg.size() == written.value());
+
+    // ReadFrom on server
+    std::string from_ip{};
+    u16 from_port = 0;
+    std::string buf{};
+    buf.resize(32);
+    auto read_bytes = server.ReadFrom(reinterpret_cast<u8*>(buf.data()),
+                                      buf.capacity(), from_ip, from_port);
+    REQUIRE(read_bytes.has_value());
+    buf.resize(read_bytes.value());
+    CHECK(buf.size() == msg.size());
+    CHECK(from_ip.size() > 0);
+    CHECK(from_port != 0);
+
+    // WriteTo server -> *ReadFrom IP*
+    auto write_bytes = server.WriteTo(reinterpret_cast<const u8*>(buf.data()),
+                                      buf.size(), from_ip, from_port);
+    REQUIRE(write_bytes.has_value());
+    CHECK(write_bytes.value() == buf.size());
+
+    // Read on client
+    std::string buf2{};
+    buf2.resize(32);
+    auto read_bytes2 = client.Read(reinterpret_cast<u8*>(buf2.data()),
+                                   buf2.capacity());
+
+    REQUIRE(read_bytes2.has_value());
+    buf2.resize(read_bytes2.value());
+    CHECK(read_bytes2.value() == buf.size());
+    CHECK(buf2 == msg);
+  }
 }
