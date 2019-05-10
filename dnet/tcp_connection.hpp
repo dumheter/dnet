@@ -159,9 +159,8 @@ TcpConnection<TVector, THeaderData>::TcpConnection(
     : transport_(std::move(other.transport_)) {}
 
 template <typename TVector, typename THeaderData>
-TcpConnection<TVector, THeaderData>&
-TcpConnection<TVector, THeaderData>::operator=(
-    TcpConnection<TVector, THeaderData>&& other) noexcept {
+TcpConnection<TVector, THeaderData>& TcpConnection<TVector, THeaderData>::
+operator=(TcpConnection<TVector, THeaderData>&& other) noexcept {
   if (&other != this) {
     transport_ = std::move(other.transport_);
   }
@@ -169,8 +168,8 @@ TcpConnection<TVector, THeaderData>::operator=(
 }
 
 template <typename TVector, typename THeaderData>
-Result TcpConnection<TVector, THeaderData>::Connect(
-    const std::string& address, u16 port) {
+Result TcpConnection<TVector, THeaderData>::Connect(const std::string& address,
+                                                    u16 port) {
   return transport_.Connect(address, port);
 }
 
@@ -182,8 +181,8 @@ void TcpConnection<TVector, THeaderData>::Disconnect() {
 // TODO go over the types used
 // TODO utilize NRVO
 template <typename TVector, typename THeaderData>
-std::tuple<Result, THeaderData>
-TcpConnection<TVector, THeaderData>::Read(TVector& payload_out) {
+std::tuple<Result, THeaderData> TcpConnection<TVector, THeaderData>::Read(
+    TVector& payload_out) {
   Header header{};
   ssize_t bytes = 0;
   // TODO make it possible to break out of loops if bad header
@@ -228,7 +227,7 @@ Result TcpConnection<TVector, THeaderData>::Write(
   if (payload_size > std::numeric_limits<typename Header::PayloadSize>::max() ||
       payload_size < std::numeric_limits<typename Header::PayloadSize>::min()) {
     // TODO send payloads larger than what can fit in a single packet
-    DNET_ASSERT(
+    dnet_assert(
         payload_size >
                 std::numeric_limits<typename Header::PayloadSize>::max() ||
             payload_size <

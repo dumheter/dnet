@@ -23,6 +23,7 @@ endif ()
 
 set(COMMON_SOURCE
   dnet/tcp_connection.hpp
+  dnet/network_handler.hpp
   dnet/net/packet_header.hpp
   dnet/net/socket.cpp
   dnet/net/socket.hpp
@@ -35,6 +36,8 @@ set(COMMON_SOURCE
   dnet/util/platform.hpp
   dnet/util/util.hpp
   dnet/util/util.cpp
+  dnet/util/dnet_assert.cpp
+  dnet/util/dnet_assert.hpp
   )
 aux_source_directory(thirdparty/chif_net/chif_net COMMON_SOURCE)
 
@@ -42,7 +45,7 @@ set(IO_SOURCE
   thirdparty/argparse/argparse.c
   thirdparty/fmt/src/format.cc
   )
-aux_source_directory(thirdparty/dutil IO_SOURCE)
+aux_source_directory(thirdparty/dutil COMMON_SOURCE)
 aux_source_directory(thirdparty/dlog IO_SOURCE)
 
 aux_source_directory(test TEST_SOURCE)

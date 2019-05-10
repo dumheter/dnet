@@ -11,8 +11,7 @@ struct TestHeaderData {
   const u8 magic_number = 14;
 };
 
-using TestConnection =
-    dnet::TcpConnection<std::vector<u8>, TestHeaderData>;
+using TestConnection = dnet::TcpConnection<std::vector<u8>, TestHeaderData>;
 
 // ============================================================ //
 // Basic tcp test - send 300 packets
@@ -98,7 +97,7 @@ TEST_CASE("tcp basic") {
   std::thread client_thread{RunClient, port, std::ref(run_client)};
 
   dutil::Stopwatch stopwatch{};
-  stopwatch.start();
+  stopwatch.Start();
   constexpr long timeout_ms = 2000;
   bool did_timeout = false;
   while (run_server || run_client) {

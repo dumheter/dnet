@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -35,8 +35,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace dnet
-{
+namespace dnet {
 
 /**
  * Header, to be placed in front of each payload.
@@ -53,7 +52,6 @@ struct UdpHeader {
  */
 template <typename TVector>
 class UdpBuffer {
-
  public:
   UdpBuffer() = default;
   ~UdpBuffer() = default;
@@ -66,9 +64,7 @@ class UdpBuffer {
  * @tparam TVector Same TVector as in UdpBuffer, see it for more info.
  */
 template <typename TVector>
-class UdpConnection
-{
-
+class UdpConnection {
   // ============================================================ //
   // Lifetime
   // ============================================================ //
@@ -159,7 +155,6 @@ class UdpConnection
 
  private:
   Udp transport_;
-
 };
 
 // ============================================================ //
@@ -167,8 +162,7 @@ class UdpConnection
 // ============================================================ //
 
 template <typename TVector>
-UdpConnection<TVector>::UdpConnection()
-    : transport_() {}
+UdpConnection<TVector>::UdpConnection() : transport_() {}
 
 template <typename TVector>
 UdpConnection<TVector>::UdpConnection(Udp&& transport)
@@ -188,8 +182,7 @@ UdpConnection<TVector>& UdpConnection<TVector>::operator=(
 }
 
 template <typename TVector>
-Result UdpConnection<TVector>::Connect(const std::string& address,
-                                       u16 port) {
+Result UdpConnection<TVector>::Connect(const std::string& address, u16 port) {
   return transport_.Connect(address, port);
 }
 
@@ -200,12 +193,12 @@ void UdpConnection<TVector>::Disconnect() {
 
 template <typename TVector>
 Result UdpConnection<TVector>::Read(UdpBuffer<TVector>& buffer_out) {
-  //TODO
+  // TODO
   buffer_out.resize(buffer_out.capacity());
   const auto res = transport_.Read(reinterpret_cast<u8*>(buffer_out.data()),
                                    buffer_out.size());
   if (res.has_value()) {
-                   buffer_out.resize(res.value());
+    buffer_out.resize(res.value());
   }
   return res;
 }
@@ -217,6 +210,6 @@ template <typename TVector>
 Result UdpConnection<TVector>::StartServer(u16 port) {
   return transport_.StartServer(port);
 }
-}
+}  // namespace dnet
 
-#endif//UDP_CONNECTION_HPP_
+#endif  // UDP_CONNECTION_HPP_

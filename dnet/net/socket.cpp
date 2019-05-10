@@ -85,15 +85,12 @@ std::optional<ssize_t> Socket::ReadFrom(u8* buf_out, size_t buflen,
   chif_net_address source_addr;
   auto res = chif_net_readfrom(socket_, buf_out, buflen, &bytes, &source_addr);
   if (res == CHIF_NET_RESULT_SUCCESS) {
-
     addr_out.resize(CHIF_NET_IPVX_STRING_LENGTH);
     res = chif_net_ip_from_address(&source_addr, addr_out.data(),
                                    addr_out.capacity());
     if (res == CHIF_NET_RESULT_SUCCESS) {
-
       res = chif_net_port_from_address(&source_addr, &port_out);
       if (res == CHIF_NET_RESULT_SUCCESS) {
-
         return std::optional<ssize_t>{bytes};
       }
     }
@@ -121,12 +118,10 @@ std::optional<ssize_t> Socket::WriteTo(const u8* buf, size_t len,
   auto res = chif_net_lookup_address(&target_addr, addr.c_str(),
                                      portstr.c_str(), af_, proto_);
   if (res == CHIF_NET_RESULT_SUCCESS) {
-
     res = chif_net_writeto(socket_, buf, len, &bytes, &target_addr);
     if (res == CHIF_NET_RESULT_SUCCESS) {
       return std::optional<ssize_t>{bytes};
     }
-
   }
   last_error_ = res;
   return std::nullopt;

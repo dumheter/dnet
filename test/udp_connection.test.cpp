@@ -24,7 +24,7 @@ static void RunClient(const u16 port, bool& run) {
   dnet::UdpConnection<std::vector<u8>> con{};
   auto res = con.Connect("localhost", port);
 
-  //con.Write
+  // con.Write
 
   run = false;
 }
@@ -37,7 +37,7 @@ TEST_CASE("udp basic") {
   std::thread client_thread{RunClient, port, std::ref(run_client)};
 
   dutil::Stopwatch stopwatch{};
-  stopwatch.start();
+  stopwatch.Start();
   constexpr long timeout_ms = 2000;
   bool did_timeout = false;
   while (run_server || run_client) {

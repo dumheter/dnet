@@ -49,15 +49,12 @@ class Udp {
   explicit Udp(Socket&& socket);
 
  public:
-
   /**
    * Start listening on @port. Will also open the socket.
    */
   Result StartServer(const u16 port);
 
-  Result Open() {
-    return socket_.Open();
-  }
+  Result Open() { return socket_.Open(); }
 
   Result Connect(const std::string& address, const u16 port) {
     return socket_.Connect(address, port);

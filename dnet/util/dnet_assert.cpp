@@ -22,15 +22,18 @@
  * SOFTWARE.
  */
 
-#ifndef DNET_ASSERT_HPP_
-#define DNET_ASSERT_HPP_
-
-#include <string>
+#include "dnet_assert.hpp"
+#include <cstdlib>
+#include <iostream>
 
 namespace dnet {
 
-void dnet_assert(const bool predicate, const std::string& message);
-
+void dnet_assert(const bool predicate, const std::string& message) {
+  if (!predicate) {
+    std::cerr << "Assertion failed with message [" << message << "]."
+              << std::endl; /* force a flush */
+    std::exit(-1);
+  }
 }
 
-#endif  // DNET_ASSERT_HPP_
+}  // namespace dnet

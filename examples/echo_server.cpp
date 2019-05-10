@@ -1,8 +1,8 @@
 #include <argparse.h>
 #include <fmt/format.h>
-#include <dnet/tcp_connection.hpp>
 #include <dnet/net/packet_header.hpp>
 #include <dnet/net/tcp.hpp>
+#include <dnet/tcp_connection.hpp>
 #include <dnet/util/platform.hpp>
 #include <dnet/util/util.hpp>
 #include <iostream>

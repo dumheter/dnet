@@ -3,16 +3,16 @@
 #include <dnet/net/udp.hpp>
 #include <dnet/util/types.hpp>
 #include <dutil/stopwatch.hpp>
+#include <limits>
 #include <thread>
 #include <vector>
-#include <limits>
 
 /**
  * Make the server stop by setting run == false or sending the 0xF packet.
  *
  * @param packets_out How many packets we received.
  */
-void RunServer(const u16 port, bool& run, int& packets_out) {
+static void RunServer(const u16 port, bool& run, int& packets_out) {
   packets_out = 0;
 
   dnet::Udp con{};
@@ -26,7 +26,6 @@ void RunServer(const u16 port, bool& run, int& packets_out) {
   payload.reserve(std::numeric_limits<u16>::max());
 
   while (run && res == dnet::Result::kSuccess) {
-
     if (con.CanRead()) {
       payload.resize(payload.capacity());
       auto maybe_bytes = con.Read(payload.data(), payload.capacity());
@@ -39,8 +38,7 @@ void RunServer(const u16 port, bool& run, int& packets_out) {
         if (payload.size() == 1 && payload[0] == 0xF) {
           run = false;
         }
-      }
-      else {
+      } else {
         run = false;
       }
     }
@@ -120,7 +118,7 @@ TEST_CASE("udp basics") {
   std::thread client_thread{RunClient, port, std::ref(run_client)};
 
   dutil::Stopwatch stopwatch{};
-  stopwatch.start();
+  stopwatch.Start();
   constexpr long timeout_ms = 2000;
   bool did_timeout = false;
   while (run_server || run_client) {
@@ -166,8 +164,7 @@ TEST_CASE("udp big packet") {
         if (maybe_bytes.has_value()) {
           CHECK(maybe_bytes.value() == payload.size());
           ++packets;
-        }
-        else {
+        } else {
           DLOG_WARNING("failed to write [{}]", con.LastErrorToString());
         }
       }
@@ -213,7 +210,7 @@ TEST_CASE("udp big packet") {
   std::thread client_thread{RunClient, port, std::ref(run_client)};
 
   dutil::Stopwatch stopwatch{};
-  stopwatch.start();
+  stopwatch.Start();
   constexpr long timeout_ms = 2000;
   bool did_timeout = false;
   while (run_server || run_client) {
@@ -238,10 +235,9 @@ TEST_CASE("ReadFrom and WriteTo") {
   auto res = server.StartServer(port);
   CHECK(res == dnet::Result::kSuccess);
   if (res == dnet::Result::kSuccess) {
-
     // WriteTo client -> server
     dnet::Udp client{};
-    client.Open();
+    REQUIRE(client.Open() == dnet::Result::kSuccess);
     std::string msg{"hey from client"};
     auto written = client.WriteTo(reinterpret_cast<const u8*>(msg.data()),
                                   msg.size(), "localhost", port);
@@ -270,8 +266,8 @@ TEST_CASE("ReadFrom and WriteTo") {
     // Read on client
     std::string buf2{};
     buf2.resize(32);
-    auto read_bytes2 = client.Read(reinterpret_cast<u8*>(buf2.data()),
-                                   buf2.capacity());
+    auto read_bytes2 =
+        client.Read(reinterpret_cast<u8*>(buf2.data()), buf2.capacity());
 
     REQUIRE(read_bytes2.has_value());
     buf2.resize(read_bytes2.value());
