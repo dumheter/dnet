@@ -129,18 +129,19 @@ class NetworkHandler {
 
 template <typename TPacket, typename TTransport>
 NetworkHandler<TPacket, TTransport>::NetworkHandler()
-    : worker_(network_worker::Loop<TPacket, TTransport>, std::ref(shared_data_)) {}
+    : worker_(network_worker::Loop<TPacket, TTransport>,
+              std::ref(shared_data_)) {}
 
 template <typename TPacket, typename TTransport>
-NetworkHandler<TPacket, TTransport>::NetworkHandler(NetworkHandler&& other) noexcept
-    : shared_data_(std::move(other.shared_data_)),
-      worker_() {
+NetworkHandler<TPacket, TTransport>::NetworkHandler(
+    NetworkHandler&& other) noexcept
+    : shared_data_(std::move(other.shared_data_)), worker_() {
   worker_.swap(other.worker_);
 }
 
 template <typename TPacket, typename TTransport>
-NetworkHandler<TPacket, TTransport>& NetworkHandler<TPacket, TTransport>::operator=(
-    NetworkHandler&& other) noexcept {
+NetworkHandler<TPacket, TTransport>& NetworkHandler<TPacket, TTransport>::
+operator=(NetworkHandler&& other) noexcept {
   if (this != &other) {
     shared_data_ = std::move(other.shared_data_);
     worker_ = std::move(other.worker_);
@@ -149,7 +150,7 @@ NetworkHandler<TPacket, TTransport>& NetworkHandler<TPacket, TTransport>::operat
 }
 
 template <typename TPacket, typename TTransport>
-NetworkHandler<TPacket, TTransport>:: ~NetworkHandler() {
+NetworkHandler<TPacket, TTransport>::~NetworkHandler() {
   shared_data_.run_worker_thread_flag = false;
   worker_.join();
 }

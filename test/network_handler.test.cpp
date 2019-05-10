@@ -4,10 +4,10 @@
 #include <dnet/network_handler.hpp>
 #include <dnet/util/types.hpp>
 #include <dutil/stopwatch.hpp>
+#include <functional>
 #include <limits>
 #include <thread>
 #include <vector>
-#include <functional>
 
 /**
  * Make the server stop by setting run == false or sending the 0xF packet.
@@ -32,8 +32,8 @@ static void RunEchoServer(const u16 port, bool& run, int& packets_out) {
     if (con.CanRead()) {
       payload.resize(payload.capacity());
 
-      auto maybe_bytes = con.ReadFrom(payload.data(), payload.size(), src_addr,
-                                      src_port);
+      auto maybe_bytes =
+          con.ReadFrom(payload.data(), payload.size(), src_addr, src_port);
       CHECK(maybe_bytes.has_value());
       if (maybe_bytes.has_value()) {
         payload.resize(maybe_bytes.value());
@@ -42,10 +42,9 @@ static void RunEchoServer(const u16 port, bool& run, int& packets_out) {
         std::string msg{payload.begin(), payload.end()};
         if (payload.size() == 1 && payload[0] == 0xF) {
           run = false;
-        }
-        else {
-          auto maybe_bytes = con.WriteTo(payload.data(), payload.size(), src_addr,
-                                       src_port);
+        } else {
+          auto maybe_bytes =
+              con.WriteTo(payload.data(), payload.size(), src_addr, src_port);
           if (!maybe_bytes.has_value() ||
               maybe_bytes.value() != static_cast<ssize_t>(payload.size())) {
             DLOG_WARNING("failed to write, could not echo back. [{}]",
@@ -85,7 +84,7 @@ TEST_CASE("network handler basics") {
       return check;
     };
 
-    { // connect & get the connected event
+    {  // connect & get the connected event
       sw.Start();
       nh.Connect("localhost", port);
 
@@ -96,7 +95,7 @@ TEST_CASE("network handler basics") {
       DLOG_VERBOSE("connecting took {:.2f} ms", sw.fms());
     }
 
-    { // send a message and get it back
+    {  // send a message and get it back
       std::string msg{"this is a message"};
       std::vector<u8> packet{msg.begin(), msg.end()};
       sw.Start();
@@ -117,10 +116,10 @@ TEST_CASE("network handler basics") {
                    sw.fms());
     }
 
-    { // send 3 60kb packets and get them bask
+    {  // send 3 60kb packets and get them bask
       constexpr u32 size = 60000;
       std::vector<u8> packet0(size);
-      for (u32 i=0; i<size; i++) {
+      for (u32 i = 0; i < size; i++) {
         packet0[i] = static_cast<u8>(i % 256);
       }
       sw.Start();
@@ -142,11 +141,12 @@ TEST_CASE("network handler basics") {
         CHECK(std::memcmp(packet0.data(), packet1.data(), packet0.size()) == 0);
       }
       sw.Stop();
-      DLOG_VERBOSE("sending, receiving and checking three 60Kb packets took {:.2f} ms",
-                   sw.fms());
+      DLOG_VERBOSE(
+          "sending, receiving and checking three 60Kb packets took {:.2f} ms",
+          sw.fms());
     }
 
-    { // send disconnect packet
+    {  // send disconnect packet
       std::vector<u8> packet(1);
       packet[0] = 0xF;
       const auto did_enqueue = nh.Send(packet);
