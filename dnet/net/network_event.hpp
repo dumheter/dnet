@@ -1,6 +1,8 @@
 #ifndef NETWORK_EVENT_HPP_
 #define NETWORK_EVENT_HPP_
 
+#include <string>
+
 namespace dnet {
 
 class NetworkEvent {
@@ -30,6 +32,34 @@ class NetworkEvent {
   Type type() const { return type_; }
 
   void set_type(Type type) { type_ = type; }
+
+  std::string ToString() const {
+    std::string str{};
+    switch (type_) {
+      case Type::kNewData:
+        str = "new data";
+        break;
+      case Type::kDisconnected:
+        str = "disconnected";
+        break;
+        case Type::kConnected:
+        str = "connected";
+        break;
+        case Type::kSendQueueFull:
+          str = "send queue full";
+          break;
+        case Type::kRecvQueueFull:
+          str = "recv queue full";
+          break;
+        case Type::kFailedToConnect:
+          str = "failed to connect";
+          break;
+        case Type::kInvalid:
+          str = "invalid";
+          break;
+    }
+    return str;
+  }
 
  private:
   Type type_ = Type::kInvalid;
