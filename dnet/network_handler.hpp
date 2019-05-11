@@ -48,6 +48,7 @@ struct SharedData {
   bool run_worker_thread_flag = true;
   bool connect_flag = false;
   bool is_connected = false;
+  bool disconnect_flag = false;
   std::string ip{""};
   u16 port = 0;
 
@@ -114,7 +115,9 @@ class NetworkHandler {
    */
   void Connect(const std::string& ip, u16 port);
 
-  bool is_connected();
+  bool IsConnected();
+
+  void Disconnect();
 
   const SharedData<TPacket>& GetSharedData();
 
@@ -205,8 +208,13 @@ void NetworkHandler<TPacket, TTransport>::Connect(const std::string& ip,
 }
 
 template <typename TPacket, typename TTransport>
-bool NetworkHandler<TPacket, TTransport>::is_connected() {
+bool NetworkHandler<TPacket, TTransport>::IsConnected() {
   return shared_data_.is_connected;
+}
+
+template <typename TPacket, typename TTransport>
+void NetworkHandler<TPacket, TTransport>::Disconnect() {
+  shared_data_.disconnect_flag = true;
 }
 
 template <typename TPacket, typename TTransport>
@@ -370,6 +378,12 @@ void Loop(SharedData<TPacket>& shared_data) {
       worker.addConnection(shared_data.eventQueue, shared_data.ip,
                            shared_data.port, shared_data.is_connected);
       shared_data.connect_flag = false;
+    }
+
+    if (shared_data.disconnect_flag) {
+      did_work = true;
+      worker.Disconnect(shared_data.eventQueue, shared_data.is_connected);
+      shared_data.disconnect_flag = false;
     }
 
     // to not use 100% CPU, let it sleeep every loop
