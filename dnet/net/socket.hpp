@@ -25,20 +25,31 @@
 #ifndef SOCKET_HPP_
 #define SOCKET_HPP_
 
-#include <chif_net/chif_net.h>
 #include <dnet/util/result.hpp>
 #include <dnet/util/types.hpp>
 #include <optional>
 #include <string>
 #include <tuple>
+#include <memory>
 
 namespace dnet {
 
+enum class TransportProtocol {
+  kUdp,
+  kTcp
+};
+
+enum class AddressFamily {
+  kIPv4,
+  kIPv6
+};
+
 class Socket {
  public:
-  Socket(chif_net_protocol proto, chif_net_address_family fam);
+  Socket(const TransportProtocol transport,
+         const AddressFamily address_family);
 
-  ~Socket() { chif_net_close_socket(&socket_); };
+  ~Socket();
 
   Socket(const Socket& other) = delete;
   Socket& operator=(const Socket& other) = delete;
@@ -46,14 +57,6 @@ class Socket {
   Socket(Socket&& other) noexcept;
   Socket& operator=(Socket&& other) noexcept;
 
- private:
-  /*
-   * Create a Socket from an existing open chif_net_socket
-   */
-  Socket(chif_net_socket sock, const chif_net_protocol proto,
-         const chif_net_address_family fam);
-
- public:
   Result Open();
 
   Result Bind(const u16 port);
@@ -113,17 +116,17 @@ class Socket {
    */
   std::tuple<Result, std::string, u16> GetPeer();
 
-  Result SetReuseAddr(bool reuse) const;
+  Result SetReuseAddr(const bool reuse) const;
 
-  Result SetBlocking(bool blocking) const;
+  Result SetBlocking(const bool blocking) const;
 
   std::string LastErrorToString() const;
 
  private:
-  chif_net_socket socket_;
-  chif_net_protocol proto_;
-  chif_net_address_family af_;
-  chif_net_result last_error_;
+  class Pimpl;
+  std::unique_ptr<Pimpl> pimpl_;
+
+  Socket(Pimpl&& pimpl);
 };
 
 }  // namespace dnet
