@@ -191,7 +191,7 @@ TEST_CASE("connecting to closed port") {
   const auto fn = std::bind(
       &dnet::NetworkHandler<std::vector<u8>, dnet::Udp>::HasEvent, &nh);
 
-  { // connect should return "connected" (because of udp)
+  {  // connect should return "connected" (because of udp)
     nh.Connect("localhost", 60123);
     const bool check = dutil::TimedCheck(fn, 100);
     REQUIRE(check);
@@ -199,7 +199,7 @@ TEST_CASE("connecting to closed port") {
     CHECK(event.type() == dnet::NetworkEvent::Type::kConnected);
   }
 
-  { // sending to a non-server port will generate no event
+  {  // sending to a non-server port will generate no event
     std::string msg{"the winter is coming"};
     std::vector<u8> v{msg.begin(), msg.end()};
     nh.Send(v);

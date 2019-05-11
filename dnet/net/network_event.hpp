@@ -42,21 +42,21 @@ class NetworkEvent {
       case Type::kDisconnected:
         str = "disconnected";
         break;
-        case Type::kConnected:
+      case Type::kConnected:
         str = "connected";
         break;
-        case Type::kSendQueueFull:
-          str = "send queue full";
-          break;
-        case Type::kRecvQueueFull:
-          str = "recv queue full";
-          break;
-        case Type::kFailedToConnect:
-          str = "failed to connect";
-          break;
-        case Type::kInvalid:
-          str = "invalid";
-          break;
+      case Type::kSendQueueFull:
+        str = "send queue full";
+        break;
+      case Type::kRecvQueueFull:
+        str = "recv queue full";
+        break;
+      case Type::kFailedToConnect:
+        str = "failed to connect";
+        break;
+      case Type::kInvalid:
+        str = "invalid";
+        break;
     }
     return str;
   }
