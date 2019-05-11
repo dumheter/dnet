@@ -86,20 +86,20 @@ class UdpConnection {
   // Client
   // ============================================================ //
 
-  Result Connect(const std::string& address, u16 port);
+  Result Connect(const std::string& address, u16 port) const;
 
-  void Disconnect();
+  void Disconnect() const;
 
   /**
    * Read incoming packet and put in @buffer_out.
    */
-  Result Read(UdpBuffer<TVector>& buffer_out);
+  Result Read(UdpBuffer<TVector>& buffer_out) const;
 
   /**
    * Prepare the header, then copy over the buffer to kernel memory to
    * be sent of to remote.
    */
-  Result Write(UdpBuffer<TVector>& buffer);
+  Result Write(UdpBuffer<TVector>& buffer) const;
 
   /**
    * @return Any error occured while attempting to check, will return false.
@@ -118,7 +118,7 @@ class UdpConnection {
   /**
    * Start listening for incoming packets on port @port.
    */
-  Result StartServer(u16 port);
+  Result StartServer(u16 port) const;
 
   // ============================================================ //
   // Misc
@@ -129,15 +129,15 @@ class UdpConnection {
    */
   bool HasError() const;
 
-  std::optional<std::string> GetIp() { return transport_.GetIp(); }
+  std::optional<std::string> GetIp() const { return transport_.GetIp(); }
 
-  std::optional<u16> GetPort() { return transport_.GetPort(); }
+  std::optional<u16> GetPort() const { return transport_.GetPort(); }
 
   /**
    * Get the address information about the peer which we are connected to.
    * @return Result of the call, Ip and port of peer.
    */
-  std::tuple<Result, std::string, u16> GetPeer() {
+  std::tuple<Result, std::string, u16> GetPeer() const {
     return transport_.GetPeer();
   }
 
@@ -182,17 +182,18 @@ UdpConnection<TVector>& UdpConnection<TVector>::operator=(
 }
 
 template <typename TVector>
-Result UdpConnection<TVector>::Connect(const std::string& address, u16 port) {
+Result UdpConnection<TVector>::Connect(const std::string& address,
+                                       u16 port) const {
   return transport_.Connect(address, port);
 }
 
 template <typename TVector>
-void UdpConnection<TVector>::Disconnect() {
+void UdpConnection<TVector>::Disconnect() const {
   transport_.Disconnect();
 }
 
 template <typename TVector>
-Result UdpConnection<TVector>::Read(UdpBuffer<TVector>& buffer_out) {
+Result UdpConnection<TVector>::Read(UdpBuffer<TVector>& buffer_out) const {
   // TODO
   buffer_out.resize(buffer_out.capacity());
   const auto res = transport_.Read(reinterpret_cast<u8*>(buffer_out.data()),
@@ -207,7 +208,7 @@ template <typename TVector>
 Result Write(UdpBuffer<TVector>& buffer);
 
 template <typename TVector>
-Result UdpConnection<TVector>::StartServer(u16 port) {
+Result UdpConnection<TVector>::StartServer(u16 port) const {
   return transport_.StartServer(port);
 }
 }  // namespace dnet

@@ -49,21 +49,21 @@ class Tcp {
   explicit Tcp(Socket&& socket);
 
  public:
-  Result StartServer(u16 port);
+  Result StartServer(u16 port) const;
 
-  std::optional<Tcp> Accept();
+  std::optional<Tcp> Accept() const;
 
-  Result Connect(const std::string& address, u16 port) {
+  Result Connect(const std::string& address, u16 port) const {
     return socket_.Connect(address, port);
   }
 
-  void Disconnect() { socket_.Close(); }
+  void Disconnect() const { socket_.Close(); }
 
-  std::optional<ssize_t> Read(u8* buf_out, size_t buflen) {
+  std::optional<ssize_t> Read(u8* buf_out, size_t buflen) const {
     return socket_.Read(buf_out, buflen);
   };
 
-  std::optional<ssize_t> Write(const u8* buf, size_t buflen) {
+  std::optional<ssize_t> Write(const u8* buf, size_t buflen) const {
     return socket_.Write(buf, buflen);
   };
 
@@ -75,14 +75,16 @@ class Tcp {
 
   bool HasError() const { return socket_.HasError(); }
 
-  std::optional<std::string> GetIp() { return socket_.GetIp(); }
+  std::optional<std::string> GetIp() const { return socket_.GetIp(); }
 
-  std::optional<u16> GetPort() { return socket_.GetPort(); }
+  std::optional<u16> GetPort() const { return socket_.GetPort(); }
 
   /**
    * @return Result of the call, Ip and port of peer.
    */
-  std::tuple<Result, std::string, u16> GetPeer() { return socket_.GetPeer(); }
+  std::tuple<Result, std::string, u16> GetPeer() const {
+    return socket_.GetPeer();
+  }
 
   /**
    * If a Result comes back as kFail, or std::optional as std::nullopt, an

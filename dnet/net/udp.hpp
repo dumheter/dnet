@@ -52,37 +52,38 @@ class Udp {
   /**
    * Start listening on @port. Will also open the socket.
    */
-  Result StartServer(const u16 port);
+  Result StartServer(const u16 port) const;
 
-  Result Open() { return socket_.Open(); }
+  Result Open() const { return socket_.Open(); }
 
-  Result Connect(const std::string& address, const u16 port) {
+  Result Connect(const std::string& address, const u16 port) const {
     return socket_.Connect(address, port);
   }
 
-  void Disconnect() { socket_.Close(); }
+  void Disconnect() const { socket_.Close(); }
 
   /**
    * @return Amount of read bytes, or nullopt on failure.
    */
-  std::optional<ssize_t> Read(u8* buf_out, const size_t buflen) {
+  std::optional<ssize_t> Read(u8* buf_out, const size_t buflen) const {
     return socket_.Read(buf_out, buflen);
   };
 
   std::optional<ssize_t> ReadFrom(u8* buf_out, const size_t buflen,
-                                  std::string& addr_out, u16& port_out) {
+                                  std::string& addr_out, u16& port_out) const {
     return socket_.ReadFrom(buf_out, buflen, addr_out, port_out);
   }
 
   /**
    * @return Amount of written bytes, or nullopt on failure.
    */
-  std::optional<ssize_t> Write(const u8* buf, const size_t buflen) {
+  std::optional<ssize_t> Write(const u8* buf, const size_t buflen) const {
     return socket_.Write(buf, buflen);
   };
 
   std::optional<ssize_t> WriteTo(const u8* buf, const size_t buflen,
-                                 const std::string& addr, const u16 port) {
+                                 const std::string& addr,
+                                 const u16 port) const {
     return socket_.WriteTo(buf, buflen, addr, port);
   }
 
@@ -92,14 +93,16 @@ class Udp {
 
   bool HasError() const { return socket_.HasError(); }
 
-  std::optional<std::string> GetIp() { return socket_.GetIp(); }
+  std::optional<std::string> GetIp() const { return socket_.GetIp(); }
 
-  std::optional<u16> GetPort() { return socket_.GetPort(); }
+  std::optional<u16> GetPort() const { return socket_.GetPort(); }
 
   /**
    * @return Result of the call, Ip and port of peer.
    */
-  std::tuple<Result, std::string, u16> GetPeer() { return socket_.GetPeer(); }
+  std::tuple<Result, std::string, u16> GetPeer() const {
+    return socket_.GetPeer();
+  }
 
   /**
    * If a Result comes back as kFail, or std::optional as std::nullopt, an

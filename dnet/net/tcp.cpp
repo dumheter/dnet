@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -39,7 +39,7 @@ Tcp& Tcp::operator=(Tcp&& other) noexcept {
 
 Tcp::Tcp(Socket&& socket) : socket_(std::move(socket)) {}
 
-Result Tcp::StartServer(u16 port) {
+Result Tcp::StartServer(u16 port) const {
   Result res = socket_.Open();
   if (res == Result::kSuccess) {
     // After closing the program, the port can be left in an occupied state,
@@ -58,7 +58,7 @@ Result Tcp::StartServer(u16 port) {
   return Result::kFail;
 }
 
-std::optional<Tcp> Tcp::Accept() {
+std::optional<Tcp> Tcp::Accept() const {
   auto maybe_socket = socket_.Accept();
   if (maybe_socket.has_value()) {
     return std::optional<Tcp>{Tcp(std::move(maybe_socket.value()))};

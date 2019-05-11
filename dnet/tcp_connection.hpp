@@ -73,13 +73,13 @@ class TcpConnection {
   // Client methods
   // ====================================================================== //
 
-  Result Connect(const std::string& address, u16 port);
+  Result Connect(const std::string& address, u16 port) const;
 
-  void Disconnect();
+  void Disconnect() const;
 
-  std::tuple<Result, THeaderData> Read(TVector& payload_out);
+  std::tuple<Result, THeaderData> Read(TVector& payload_out) const;
 
-  Result Write(const THeaderData& header_data, const TVector& payload);
+  Result Write(const THeaderData& header_data, const TVector& payload) const;
 
   /**
    * @return Any error occured while attempting to check, will return false.
@@ -95,9 +95,9 @@ class TcpConnection {
   // Server methods
   // ====================================================================== //
 
-  Result StartServer(u16 port);
+  Result StartServer(u16 port) const;
 
-  std::optional<TcpConnection> Accept();
+  std::optional<TcpConnection> Accept() const;
 
   /**
    * @return Any error occured while attempting to check, will return false.
@@ -113,15 +113,15 @@ class TcpConnection {
    */
   bool HasError() const;
 
-  std::optional<std::string> GetIp() { return transport_.GetIp(); }
+  std::optional<std::string> GetIp() const { return transport_.GetIp(); }
 
-  std::optional<u16> GetPort() { return transport_.GetPort(); }
+  std::optional<u16> GetPort() const { return transport_.GetPort(); }
 
   /**
    * Get the address information about the peer which we are connected to.
    * @return Result of the call, Ip and port of peer.
    */
-  std::tuple<Result, std::string, u16> GetPeer() {
+  std::tuple<Result, std::string, u16> GetPeer() const {
     return transport_.GetPeer();
   }
 
@@ -169,12 +169,12 @@ operator=(TcpConnection<TVector, THeaderData>&& other) noexcept {
 
 template <typename TVector, typename THeaderData>
 Result TcpConnection<TVector, THeaderData>::Connect(const std::string& address,
-                                                    u16 port) {
+                                                    u16 port) const {
   return transport_.Connect(address, port);
 }
 
 template <typename TVector, typename THeaderData>
-void TcpConnection<TVector, THeaderData>::Disconnect() {
+void TcpConnection<TVector, THeaderData>::Disconnect() const {
   transport_.Disconnect();
 }
 
@@ -182,7 +182,7 @@ void TcpConnection<TVector, THeaderData>::Disconnect() {
 // TODO utilize NRVO
 template <typename TVector, typename THeaderData>
 std::tuple<Result, THeaderData> TcpConnection<TVector, THeaderData>::Read(
-    TVector& payload_out) {
+    TVector& payload_out) const {
   Header header{};
   ssize_t bytes = 0;
   // TODO make it possible to break out of loops if bad header
@@ -222,7 +222,7 @@ std::tuple<Result, THeaderData> TcpConnection<TVector, THeaderData>::Read(
 // TODO utilize NRVO
 template <typename TVector, typename THeaderData>
 Result TcpConnection<TVector, THeaderData>::Write(
-    const THeaderData& header_data, const TVector& payload) {
+    const THeaderData& header_data, const TVector& payload) const {
   const auto payload_size = payload.size();
   if (payload_size > std::numeric_limits<typename Header::PayloadSize>::max() ||
       payload_size < std::numeric_limits<typename Header::PayloadSize>::min()) {
@@ -287,13 +287,13 @@ bool TcpConnection<TVector, THeaderData>::HasError() const {
 }
 
 template <typename TVector, typename THeaderData>
-Result TcpConnection<TVector, THeaderData>::StartServer(u16 port) {
+Result TcpConnection<TVector, THeaderData>::StartServer(u16 port) const {
   return transport_.StartServer(port);
 }
 
 template <typename TVector, typename THeaderData>
 std::optional<TcpConnection<TVector, THeaderData>>
-TcpConnection<TVector, THeaderData>::Accept() {
+TcpConnection<TVector, THeaderData>::Accept() const {
   auto maybe_transport = transport_.Accept();
   if (maybe_transport.has_value()) {
     return std::optional<TcpConnection<TVector, THeaderData>>{

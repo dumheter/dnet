@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -123,7 +123,8 @@ class Socket::Pimpl {
                                   std::string& addr_out, u16& port_out) {
     ssize_t bytes;
     chif_net_address source_addr;
-    auto res = chif_net_readfrom(socket_, buf_out, buflen, &bytes, &source_addr);
+    auto res =
+        chif_net_readfrom(socket_, buf_out, buflen, &bytes, &source_addr);
     if (res == CHIF_NET_RESULT_SUCCESS) {
       addr_out.resize(CHIF_NET_IPVX_STRING_LENGTH);
       res = chif_net_ip_from_address(&source_addr, addr_out.data(),
@@ -274,18 +275,21 @@ class Socket::Pimpl {
 // Helper Functions
 // ============================================================ //
 
-static chif_net_protocol TranslateTransportProtocol(const TransportProtocol transport_protocol) {
+static chif_net_protocol TranslateTransportProtocol(
+    const TransportProtocol transport_protocol) {
   switch (transport_protocol) {
     case TransportProtocol::kTcp:
       return CHIF_NET_PROTOCOL_TCP;
     case TransportProtocol::kUdp:
       return CHIF_NET_PROTOCOL_UDP;
   }
-  dnet_assert(false, "switch statement did not cover all TransportProtocol options");
+  dnet_assert(false,
+              "switch statement did not cover all TransportProtocol options");
   return CHIF_NET_PROTOCOL_TCP;
 }
 
-static chif_net_address_family TranslateAddressFamily(const AddressFamily address_family) {
+static chif_net_address_family TranslateAddressFamily(
+    const AddressFamily address_family) {
   switch (address_family) {
     case AddressFamily::kIPv4:
       return CHIF_NET_ADDRESS_FAMILY_IPV4;
@@ -326,74 +330,58 @@ Socket& Socket::operator=(Socket&& other) noexcept {
 //       af_(fam),
 //       last_error_(CHIF_NET_RESULT_SUCCESS) {}
 
-Result Socket::Open() {
-  return pimpl_->Open();
-}
+Result Socket::Open() const { return pimpl_->Open(); }
 
-Result Socket::Bind(const u16 port) {
-  return pimpl_->Bind(port);
-}
+Result Socket::Bind(const u16 port) const { return pimpl_->Bind(port); }
 
-Result Socket::Listen() {
-  return pimpl_->Listen();
-}
+Result Socket::Listen() const { return pimpl_->Listen(); }
 
-std::optional<Socket> Socket::Accept() {
+std::optional<Socket> Socket::Accept() const {
   auto maybe_pimpl = pimpl_->Accept();
   if (maybe_pimpl.has_value()) {
     return std::optional<Socket>{Socket{std::move(maybe_pimpl.value())}};
-  }
-  else {
+  } else {
     return std::nullopt;
   }
 }
 
-std::optional<ssize_t> Socket::Read(u8* buf_out, const size_t buflen) {
+std::optional<ssize_t> Socket::Read(u8* buf_out, const size_t buflen) const {
   return pimpl_->Read(buf_out, buflen);
 }
 
 std::optional<ssize_t> Socket::ReadFrom(u8* buf_out, const size_t buflen,
-                                        std::string& addr_out, u16& port_out) {
+                                        std::string& addr_out,
+                                        u16& port_out) const {
   return pimpl_->ReadFrom(buf_out, buflen, addr_out, port_out);
 }
 
-std::optional<ssize_t> Socket::Write(const u8* buf, const size_t buflen) {
+std::optional<ssize_t> Socket::Write(const u8* buf, const size_t buflen) const {
   return pimpl_->Write(buf, buflen);
 }
 
 std::optional<ssize_t> Socket::WriteTo(const u8* buf, const size_t buflen,
                                        const std::string& addr,
-                                       const u16 port) {
+                                       const u16 port) const {
   return pimpl_->WriteTo(buf, buflen, addr, port);
 }
 
-void Socket::Close() { pimpl_->Close(); }
+void Socket::Close() const { pimpl_->Close(); }
 
-Result Socket::Connect(const std::string& address, const u16 port) {
+Result Socket::Connect(const std::string& address, const u16 port) const {
   return pimpl_->Connect(address, port);
 }
 
-bool Socket::CanWrite() const {
-  return pimpl_->CanWrite();
-}
+bool Socket::CanWrite() const { return pimpl_->CanWrite(); }
 
-bool Socket::CanRead() const {
-  return pimpl_->CanRead();
-}
+bool Socket::CanRead() const { return pimpl_->CanRead(); }
 
-bool Socket::HasError() const {
-  return pimpl_->HasError();
-}
+bool Socket::HasError() const { return pimpl_->HasError(); }
 
-std::optional<std::string> Socket::GetIp() {
-  return pimpl_->GetIp();
-}
+std::optional<std::string> Socket::GetIp() const { return pimpl_->GetIp(); }
 
-std::optional<u16> Socket::GetPort() {
-  return pimpl_->GetPort();
-}
+std::optional<u16> Socket::GetPort() const { return pimpl_->GetPort(); }
 
-std::tuple<Result, std::string, u16> Socket::GetPeer() {
+std::tuple<Result, std::string, u16> Socket::GetPeer() const {
   return pimpl_->GetPeer();
 }
 
