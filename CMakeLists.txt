@@ -53,6 +53,7 @@ aux_source_directory(test TEST_SOURCE)
 
 add_library(${PROJECT_NAME} STATIC  ${COMMON_SOURCE})
 
+if (DNET_BUILD_EXAMPLES)
 add_executable(echo_server examples/echo_server.cpp ${COMMON_SOURCE}
   ${IO_SOURCE})
 add_executable(echo_client examples/echo_client.cpp ${COMMON_SOURCE}
@@ -60,18 +61,28 @@ add_executable(echo_client examples/echo_client.cpp ${COMMON_SOURCE}
 add_executable(custom_header_data examples/custom_header_data.cpp
   ${COMMON_SOURCE} ${IO_SOURCE})
 add_compile_definitions(coustom_header_data DLOG_MT DLOG_TIMESTAMP)
+endif ()
 
+if (DNET_BUILD_TESTS)
 add_executable(test ${TEST_SOURCE} ${IO_SOURCE} ${COMMON_SOURCE})
-
+endif ()
 
 if (WIN32)
-  target_link_libraries(echo_server ws2_32)
-  target_link_libraries(echo_client ws2_32)
-  target_link_libraries(custom_header_data ws2_32)
-  target_link_libraries(test ws2_32)
+  if (DNET_BUILD_EXAMPLES)
+    target_link_libraries(echo_server ws2_32)
+    target_link_libraries(echo_client ws2_32)
+    target_link_libraries(custom_header_data ws2_32)
+  endif ()
+  if (DNET_BUILD_TESTS)
+    target_link_libraries(test ws2_32)
+  endif ()
 else()
-  target_link_libraries(echo_server pthread)
-  target_link_libraries(echo_client pthread)
-  target_link_libraries(custom_header_data pthread)
-  target_link_libraries(test pthread)
+  if (DNET_BUILD_EXAMPLES)
+    target_link_libraries(echo_server pthread)
+    target_link_libraries(echo_client pthread)
+    target_link_libraries(custom_header_data pthread)
+  endif()
+  if (DNET_BUILD_TESTS)
+    target_link_libraries(test pthread)
+  endif ()
 endif()
