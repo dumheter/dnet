@@ -150,7 +150,7 @@ void Serve(CustomConnection client, bool& run_server) {
   // get port
   const auto [got_peer, peer_ip, peer_port] = client.GetPeer();
   if (got_peer != dnet::Result::kSuccess) {
-    dlog::terror("serve", "failed to get peer address with error [{}]",
+    DLOG_ERROR("serve", "failed to get peer address with error [{}]",
                  client.LastErrorToString());
     return;
   }
@@ -168,7 +168,7 @@ void Serve(CustomConnection client, bool& run_server) {
                   peer_port, HeaderDataToString(header_data),
                   std::string(payload.begin(), payload.end()));
     } else {
-      dlog::twarning("serve", "failed to read handshake, closing client");
+      DLOG_WARNING("serve", "failed to read handshake, closing client");
       client.Disconnect();
       run = false;
     }
@@ -218,7 +218,7 @@ void Serve(CustomConnection client, bool& run_server) {
       }
 
     } else {
-      dlog::twarning("server", "[port:{}] failed to read with error [{}]\n",
+      DLOG_WARNING("server", "[port:{}] failed to read with error [{}]\n",
                      peer_port, client.LastErrorToString());
       run = false;
     }
