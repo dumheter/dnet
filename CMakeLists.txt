@@ -2,18 +2,13 @@ cmake_minimum_required(VERSION 3.10)
 project(dnet)
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(
-  .
-  )
+option(DNET_BUILD_TESTS "Build test" OFF)
+option(DNET_BUILD_EXAMPLES "Build examples" OFF)
 
-# example & test
 include_directories(SYSTEM
-
-  thirdparty/fmt/include
-  thirdparty/argparse
-  thirdparty/doctest/doctest
-  thirdparty#/dutil & /dlog
-)
+  .
+  thirdparty # /dutil & /dlog
+  )
 
 if (WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -40,21 +35,27 @@ set(COMMON_SOURCE
   dnet/util/dnet_assert.hpp
   )
 
+aux_source_directory(thirdparty/dutil COMMON_SOURCE)
+
 include_directories(SYSTEM
   thirdparty/chif_net
   )
 add_subdirectory(thirdparty/chif_net)
 
-set(IO_SOURCE
-  thirdparty/argparse/argparse.c
-  thirdparty/fmt/src/format.cc
-  )
-aux_source_directory(thirdparty/dutil COMMON_SOURCE)
-aux_source_directory(thirdparty/dlog IO_SOURCE)
-
-aux_source_directory(test TEST_SOURCE)
-
 add_library(${PROJECT_NAME} STATIC  ${COMMON_SOURCE})
+
+if (DNET_BUILD_EXAMPLES OR DNET_BUILD_TESTS)
+  include_directories(SYSTEM
+    thirdparty/fmt/include
+    thirdparty/argparse
+    thirdparty/doctest/doctest
+    )
+  set(IO_SOURCE
+    thirdparty/argparse/argparse.c
+    thirdparty/fmt/src/format.cc
+    )
+  aux_source_directory(thirdparty/dlog IO_SOURCE)
+endif ()
 
 if (DNET_BUILD_EXAMPLES)
 add_executable(echo_server examples/echo_server.cpp ${COMMON_SOURCE}
@@ -67,6 +68,7 @@ add_compile_definitions(coustom_header_data DLOG_MT DLOG_TIMESTAMP)
 endif ()
 
 if (DNET_BUILD_TESTS)
+aux_source_directory(test TEST_SOURCE)
 add_executable(test ${TEST_SOURCE} ${IO_SOURCE})
 endif ()
 
