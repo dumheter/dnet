@@ -73,9 +73,9 @@ class TcpConnection {
   // Client methods
   // ====================================================================== //
 
-  Result Connect(const std::string& address, u16 port) const;
+  Result Connect(const std::string& address, u16 port);
 
-  void Disconnect() const;
+  void Disconnect();
 
   std::tuple<Result, THeaderData> Read(TVector& payload_out) const;
 
@@ -95,7 +95,7 @@ class TcpConnection {
   // Server methods
   // ====================================================================== //
 
-  Result StartServer(u16 port) const;
+  Result StartServer(u16 port);
 
   std::optional<TcpConnection> Accept() const;
 
@@ -169,12 +169,12 @@ operator=(TcpConnection<TVector, THeaderData>&& other) noexcept {
 
 template <typename TVector, typename THeaderData>
 Result TcpConnection<TVector, THeaderData>::Connect(const std::string& address,
-                                                    u16 port) const {
+                                                    u16 port) {
   return transport_.Connect(address, port);
 }
 
 template <typename TVector, typename THeaderData>
-void TcpConnection<TVector, THeaderData>::Disconnect() const {
+void TcpConnection<TVector, THeaderData>::Disconnect() {
   transport_.Disconnect();
 }
 
@@ -184,9 +184,10 @@ template <typename TVector, typename THeaderData>
 std::tuple<Result, THeaderData> TcpConnection<TVector, THeaderData>::Read(
     TVector& payload_out) const {
   Header header{};
-  ssize_t bytes = 0;
-  // TODO make it possible to break out of loops if bad header
-  while (bytes < Header::header_size()) {
+  int bytes = 0;
+  static_assert(Header::header_size() < std::numeric_limits<int>::max());
+      // TODO make it possible to break out of loops if bad header
+  while (bytes < static_cast<int>(Header::header_size())) {
     const auto maybe_bytes =
         transport_.Read(header.get(), Header::header_size());
     if (maybe_bytes.has_value()) {
@@ -237,7 +238,7 @@ Result TcpConnection<TVector, THeaderData>::Write(
   const Header header{static_cast<typename Header::PayloadSize>(payload_size),
                       header_data};
 
-  ssize_t bytes = 0;
+  int bytes = 0;
   // TODO make it possible to break out of loops if bad header
   // TODO bad cast
   while (static_cast<size_t>(bytes) < header.header_size()) {
@@ -287,7 +288,7 @@ bool TcpConnection<TVector, THeaderData>::HasError() const {
 }
 
 template <typename TVector, typename THeaderData>
-Result TcpConnection<TVector, THeaderData>::StartServer(u16 port) const {
+Result TcpConnection<TVector, THeaderData>::StartServer(u16 port) {
   return transport_.StartServer(port);
 }
 

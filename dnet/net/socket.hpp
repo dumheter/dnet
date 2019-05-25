@@ -25,22 +25,22 @@
 #ifndef SOCKET_HPP_
 #define SOCKET_HPP_
 
+#include <chif_net/chif_net.h>
+#include <dnet/net/transport.hpp>
+#include <dnet/net/address.hpp>
 #include <dnet/util/result.hpp>
 #include <dnet/util/types.hpp>
-#include <memory>
 #include <optional>
 #include <string>
 #include <tuple>
 
 namespace dnet {
 
-enum class TransportProtocol { kUdp, kTcp };
-
-enum class AddressFamily { kIPv4, kIPv6 };
-
+//template <typename TTransportProtocol, typename TAddressFamily>
 class Socket {
  public:
-  Socket(const TransportProtocol transport, const AddressFamily address_family);
+  Socket(const TransportProtocol transport_protocol,
+         const AddressFamily address_family);
 
   ~Socket();
 
@@ -50,7 +50,7 @@ class Socket {
   Socket(Socket&& other) noexcept;
   Socket& operator=(Socket&& other) noexcept;
 
-  Result Open() const;
+  Result Open();
 
   Result Bind(const u16 port) const;
 
@@ -61,24 +61,24 @@ class Socket {
   /**
    * @return Amount of read bytes, or nullopt on failure.
    */
-  std::optional<ssize_t> Read(u8* buf_out, const size_t buflen) const;
+  std::optional<int> Read(u8* buf_out, const size_t buflen) const;
 
   /**
    * Places the address and port in the addr_out and port_out fields.
    */
-  std::optional<ssize_t> ReadFrom(u8* buf_out, const size_t buflen,
+  std::optional<int> ReadFrom(u8* buf_out, const size_t buflen,
                                   std::string& addr_out, u16& port_out) const;
   /**
    * @return Amount of written bytes, or nullopt on failure.
    */
-  std::optional<ssize_t> Write(const u8* buf, const size_t buflen) const;
+  std::optional<int> Write(const u8* buf, const size_t buflen) const;
 
-  std::optional<ssize_t> WriteTo(const u8* buf, const size_t buflen,
+  std::optional<int> WriteTo(const u8* buf, const size_t buflen,
                                  const std::string& addr, const u16 port) const;
 
-  void Close() const;
+  void Close();
 
-  Result Connect(const std::string& address, u16 port) const;
+  Result Connect(const std::string& address, u16 port);
 
   /**
    * @return Any error occured while attempting to check, will return false.
@@ -117,10 +117,13 @@ class Socket {
   std::string LastErrorToString() const;
 
  private:
-  class Pimpl;
-  std::unique_ptr<Pimpl> pimpl_;
+  chif_net_socket socket_;
+  chif_net_transport_protocol proto_;
+  chif_net_address_family af_;
+  mutable chif_net_result last_error_;
 
-  Socket(Pimpl&& pimpl);
+  Socket(chif_net_socket& socket, const chif_net_transport_protocol transport_protocol,
+               const chif_net_address_family address_family);
 };
 
 }  // namespace dnet

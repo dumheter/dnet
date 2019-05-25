@@ -269,7 +269,7 @@ class Worker {
     if (queueResult == dutil::QueueResult::kSuccess) {
       const auto maybe_bytes = transport_.Write(packet.data(), packet.size());
       if (!maybe_bytes.has_value() ||
-          maybe_bytes.value() != static_cast<ssize_t>(packet.size())) {
+          maybe_bytes.value() != static_cast<int>(packet.size())) {
         // TODO send the error information with the event?
         Disconnect(eventQueue, is_connected);
       }
@@ -291,7 +291,7 @@ class Worker {
       packet.resize(maybe_bytes.value());
     }
     if (maybe_bytes.has_value() &&
-        maybe_bytes.value() == static_cast<ssize_t>(packet.size())) {
+        maybe_bytes.value() == static_cast<int>(packet.size())) {
       dutil::QueueResult queueResult;
       queueResult = recv_queue.Push(std::move(packet));
       if (queueResult == dutil::QueueResult::kSuccess) {

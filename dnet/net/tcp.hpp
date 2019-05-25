@@ -49,21 +49,21 @@ class Tcp {
   explicit Tcp(Socket&& socket);
 
  public:
-  Result StartServer(u16 port) const;
+  Result StartServer(u16 port);
 
   std::optional<Tcp> Accept() const;
 
-  Result Connect(const std::string& address, u16 port) const {
+  Result Connect(const std::string& address, u16 port) {
     return socket_.Connect(address, port);
   }
 
-  void Disconnect() const { socket_.Close(); }
+  void Disconnect() { socket_.Close(); }
 
-  std::optional<ssize_t> Read(u8* buf_out, size_t buflen) const {
+  std::optional<int> Read(u8* buf_out, size_t buflen) const {
     return socket_.Read(buf_out, buflen);
   };
 
-  std::optional<ssize_t> Write(const u8* buf, size_t buflen) const {
+  std::optional<int> Write(const u8* buf, size_t buflen) const {
     return socket_.Write(buf, buflen);
   };
 

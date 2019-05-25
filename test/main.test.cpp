@@ -1,5 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT
-#include "dnet/util/util.hpp"
+#include <dnet/util/util.hpp>
 #include "doctest.h"
 
 int main(int argc, char** argv) {

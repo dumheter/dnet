@@ -39,7 +39,7 @@ Tcp& Tcp::operator=(Tcp&& other) noexcept {
 
 Tcp::Tcp(Socket&& socket) : socket_(std::move(socket)) {}
 
-Result Tcp::StartServer(u16 port) const {
+Result Tcp::StartServer(u16 port) {
   Result res = socket_.Open();
   if (res == Result::kSuccess) {
     // After closing the program, the port can be left in an occupied state,

@@ -86,9 +86,9 @@ class UdpConnection {
   // Client
   // ============================================================ //
 
-  Result Connect(const std::string& address, u16 port) const;
+  Result Connect(const std::string& address, u16 port);
 
-  void Disconnect() const;
+  void Disconnect();
 
   /**
    * Read incoming packet and put in @buffer_out.
@@ -118,7 +118,7 @@ class UdpConnection {
   /**
    * Start listening for incoming packets on port @port.
    */
-  Result StartServer(u16 port) const;
+  Result StartServer(u16 port);
 
   // ============================================================ //
   // Misc
@@ -183,12 +183,12 @@ UdpConnection<TVector>& UdpConnection<TVector>::operator=(
 
 template <typename TVector>
 Result UdpConnection<TVector>::Connect(const std::string& address,
-                                       u16 port) const {
+                                       u16 port) {
   return transport_.Connect(address, port);
 }
 
 template <typename TVector>
-void UdpConnection<TVector>::Disconnect() const {
+void UdpConnection<TVector>::Disconnect() {
   transport_.Disconnect();
 }
 
@@ -208,7 +208,7 @@ template <typename TVector>
 Result Write(UdpBuffer<TVector>& buffer);
 
 template <typename TVector>
-Result UdpConnection<TVector>::StartServer(u16 port) const {
+Result UdpConnection<TVector>::StartServer(u16 port) {
   return transport_.StartServer(port);
 }
 }  // namespace dnet

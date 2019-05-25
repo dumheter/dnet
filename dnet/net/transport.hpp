@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -22,35 +22,21 @@
  * SOFTWARE.
  */
 
-#include "udp.hpp"
+#ifndef TRANSPORT_HPP_
+#define TRANSPORT_HPP_
 
-namespace dnet {
+#include <chif_net/chif_net.h>
 
-Udp::Udp() : socket_(TransportProtocol::kUdp, AddressFamily::kIPv4) {}
+namespace dnet
+{
 
-Udp::Udp(Udp&& other) noexcept : socket_(std::move(other.socket_)) {}
+enum class TransportProtocol { kUdp, kTcp };
 
-Udp& Udp::operator=(Udp&& other) noexcept {
-  if (this != &other) {
-    socket_ = std::move(other.socket_);
-  }
-  return *this;
+inline chif_net_transport_protocol TransportProtocolToChifNet(const TransportProtocol transport_protocol) {
+  return transport_protocol == TransportProtocol::kTcp ? CHIF_NET_TRANSPORT_PROTOCOL_TCP :
+      CHIF_NET_TRANSPORT_PROTOCOL_UDP;
 }
 
-Udp::Udp(Socket&& socket) : socket_(std::move(socket)) {}
-
-Result Udp::StartServer(u16 port) {
-  Result res = socket_.Open();
-  if (res == Result::kSuccess) {
-    res = socket_.SetReuseAddr(true);
-    if (res == Result::kSuccess) {
-      res = socket_.Bind(port);
-      if (res == Result::kSuccess) {
-        return Result::kSuccess;
-      }
-    }
-  }
-  return Result::kFail;
 }
 
-}  // namespace dnet
+#endif//TRANSPORT_HPP_

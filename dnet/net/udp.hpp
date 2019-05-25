@@ -52,24 +52,24 @@ class Udp {
   /**
    * Start listening on @port. Will also open the socket.
    */
-  Result StartServer(const u16 port) const;
+  Result StartServer(const u16 port);
 
-  Result Open() const { return socket_.Open(); }
+  Result Open() { return socket_.Open(); }
 
-  Result Connect(const std::string& address, const u16 port) const {
+  Result Connect(const std::string& address, const u16 port) {
     return socket_.Connect(address, port);
   }
 
-  void Disconnect() const { socket_.Close(); }
+  void Disconnect() { socket_.Close(); }
 
   /**
    * @return Amount of read bytes, or nullopt on failure.
    */
-  std::optional<ssize_t> Read(u8* buf_out, const size_t buflen) const {
+  std::optional<int> Read(u8* buf_out, const size_t buflen) const {
     return socket_.Read(buf_out, buflen);
   };
 
-  std::optional<ssize_t> ReadFrom(u8* buf_out, const size_t buflen,
+  std::optional<int> ReadFrom(u8* buf_out, const size_t buflen,
                                   std::string& addr_out, u16& port_out) const {
     return socket_.ReadFrom(buf_out, buflen, addr_out, port_out);
   }
@@ -77,11 +77,11 @@ class Udp {
   /**
    * @return Amount of written bytes, or nullopt on failure.
    */
-  std::optional<ssize_t> Write(const u8* buf, const size_t buflen) const {
+  std::optional<int> Write(const u8* buf, const size_t buflen) const {
     return socket_.Write(buf, buflen);
   };
 
-  std::optional<ssize_t> WriteTo(const u8* buf, const size_t buflen,
+  std::optional<int> WriteTo(const u8* buf, const size_t buflen,
                                  const std::string& addr,
                                  const u16 port) const {
     return socket_.WriteTo(buf, buflen, addr, port);
