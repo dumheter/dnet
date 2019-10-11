@@ -1,12 +1,6 @@
 [submodule "source/thirdparty/chif_net"]
 	path = thirdparty/chif_net
 	url = https://github.com/dumheter/chif_net
-[submodule "source/thirdparty/argparse"]
-	path = thirdparty/argparse
-	url = https://github.com/dumheter/argparse
-[submodule "source/thirdparty/fmt"]
-	path = thirdparty/fmt
-	url = https://github.com/fmtlib/fmt
 [submodule "thirdparty/doctest"]
 	path = thirdparty/doctest
 	url = https://github.com/onqtam/doctest
@@ -16,3 +10,6 @@
 [submodule "thirdparty/dlog"]
 	path = thirdparty/dlog
 	url = https://github.com/dumheter/dlog
+[submodule "thirdparty/argparse"]
+	path = thirdparty/argparse
+	url = https://github.com/dumheter/argparse

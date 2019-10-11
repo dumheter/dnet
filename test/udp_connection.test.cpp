@@ -1,5 +1,5 @@
 #include <doctest.h>
-#include <dlog/dlog.hpp>
+#include <dlog.hpp>
 #include <dnet/udp_connection.hpp>
 #include <dnet/util/types.hpp>
 #include <dutil/stopwatch.hpp>
@@ -15,6 +15,9 @@ static void RunServer(const u16 port, bool& run) {
   dnet::UdpBuffer<std::vector<u8>> buffer;
   dnet::UdpConnection<std::vector<u8>> con{};
   auto res = con.StartServer(port);
+  if (res == dnet::Result::kFail) {
+    DLOG_ERROR("failed");
+  }
 
   run = false;
 }
@@ -23,6 +26,9 @@ static void RunClient(const u16 port, bool& run) {
   dnet::UdpBuffer<std::vector<u8>> buffer;
   dnet::UdpConnection<std::vector<u8>> con{};
   auto res = con.Connect("localhost", port);
+  if (res == dnet::Result::kFail) {
+    DLOG_ERROR("failed");
+  }
 
   // con.Write
 

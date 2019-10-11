@@ -1,5 +1,5 @@
 #include <doctest.h>
-#include <dlog/dlog.hpp>
+#include <dlog.hpp>
 #include <dnet/net/udp.hpp>
 #include <dnet/network_handler.hpp>
 #include <dnet/util/types.hpp>
@@ -81,7 +81,7 @@ TEST_CASE("network handler basics") {
       std::function<bool()> fn = std::bind(
           &dnet::NetworkHandler<std::vector<u8>, dnet::Udp>::HasEvent, &nh);
       constexpr s64 timeout_ms = 200;
-      const bool check = dutil::TimedCheck(fn, timeout_ms);
+      const bool check = dutil::TimedCheck(timeout_ms, fn);
       return check;
     };
 
@@ -194,7 +194,7 @@ TEST_CASE("connecting to closed port") {
 
   {  // connect should return "connected" (because of udp)
     nh.Connect("localhost", 60123);
-    const bool check = dutil::TimedCheck(fn, 100);
+    const bool check = dutil::TimedCheck(100, fn);
     REQUIRE(check);
     auto event = nh.GetEvent();
     CHECK(event.type() == dnet::NetworkEvent::Type::kConnected);
@@ -204,7 +204,7 @@ TEST_CASE("connecting to closed port") {
     std::string msg{"the winter is coming"};
     std::vector<u8> v{msg.begin(), msg.end()};
     nh.Send(v);
-    const bool check = dutil::TimedCheck(fn, 100);
+    const bool check = dutil::TimedCheck(100, fn);
     CHECK(!check);
   }
 }

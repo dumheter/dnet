@@ -1,2 +1,2 @@
 #!/bin/bash
-find . -name "*.hpp" -o -name "*.cpp" | grep -v thirdparty | xargs -I {} clang-format -style=file -i {}
+find dnet/ examples/ test/ -name "*.hpp" -o -name "*.cpp" | grep -v thirdparty | xargs -I {} clang-format -style=file -i {}

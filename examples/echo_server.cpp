@@ -1,30 +1,14 @@
-#include <argparse.h>
-#include <fmt/format.h>
 #include <dnet/net/packet_header.hpp>
 #include <dnet/net/tcp.hpp>
 #include <dnet/tcp_connection.hpp>
 #include <dnet/util/platform.hpp>
 #include <dnet/util/util.hpp>
+#include <argparse.h>
+#include <dlog.hpp>
 #include <iostream>
 #include <memory>
 #include <thread>
 #include <vector>
-
-// ============================================================ //
-// Debug
-#define DNET_DEBUG
-
-// print with fmt, prefixed with both function name and line number.
-#ifdef DNET_DEBUG
-#define dprint(...)                                    \
-  fmt::print("[server] [{}:{}] ", __func__, __LINE__); \
-  fmt::print(__VA_ARGS__)
-#define dprintclean(...) fmt::print(__VA_ARGS__)
-#else
-#define dprintln(...)
-#define dprint(...)
-#define dprintclean(...)
-#endif
 
 // ============================================================ //
 
@@ -35,8 +19,8 @@ using EchoConnection = dnet::TcpConnection<std::vector<u8>>;
 // hepler function to crash on result fail
 void DieOnFail(dnet::Result res, EchoConnection& con) {
   if (res == dnet::Result::kFail) {
-    dprint("failed with error [{}]\n", con.LastErrorToString());
-    std::cout << std::endl;  // flush
+    DLOG_ERROR("failed with error [{}]", con.LastErrorToString());
+    dlog::Flush();
     exit(0);
   }
 }
@@ -48,8 +32,8 @@ void Serve(EchoConnection client) {
   // get port
   const auto [got_peer, peer_ip, peer_port] = client.GetPeer();
   if (got_peer != dnet::Result::kSuccess) {
-    dprint("failed to get peer address with error [{}]\n",
-           client.LastErrorToString());
+    DLOG_ERROR("failed to get peer address with error [{}]",
+               client.LastErrorToString());
     return;
   }
 
@@ -58,25 +42,23 @@ void Serve(EchoConnection client) {
   bool run = true;
   while (run) {
     // wait for message
-    dprint("[port:{}] waiting for message\n", peer_port);
+    DLOG_INFO("[port:{}] waiting for message", peer_port);
     auto [res, header_data] = client.Read(payload);
     if (res == dnet::Result::kSuccess) {
-      dprint("[port:{}] read {} bytes: [", peer_port, payload.size());
-      for (const auto c : payload) {
-        dprintclean("{}", static_cast<char>(c));
-      }
-      dprintclean("]\n");
+      const auto msg =
+          std::string(reinterpret_cast<const char*>(&payload[0]), payload.size());
+      DLOG_INFO("[port:{}] read {} bytes: [{}]", peer_port, payload.size(), msg);
 
       // echo back the message
-      dprint("[port:{}] echoing back the message\n", peer_port);
+      DLOG_INFO("[port:{}] echoing back the message", peer_port);
       res = client.Write(header_data, payload);
       if (res != dnet::Result::kSuccess) {
-        dprint("[port:{}] failed to write with error [{}]\n", peer_port,
+        DLOG_ERROR("[port:{}] failed to write with error [{}]", peer_port,
                client.LastErrorToString());
         run = false;
       }
     } else {
-      dprint("[port:{}] failed to read with error [{}]\n", peer_port,
+      DLOG_ERROR("[port:{}] failed to read with error [{}]", peer_port,
              client.LastErrorToString());
       run = false;
     }
@@ -86,33 +68,33 @@ void Serve(EchoConnection client) {
 // listen for connections on main thread
 void RunServer(u16 port) {
   // start the server
-  dprint("starting server\n");
+  DLOG_INFO("starting server");
   EchoConnection server{};
   dnet::Result res = server.StartServer(port);
   DieOnFail(res, server);
-  dprint("server running @ {}:{}\n", server.GetIp().value_or("error"),
+  DLOG_INFO("server running @ {}:{}", server.GetIp().value_or("error"),
          server.GetPort().value_or(0));
 
   bool run = true;
   while (run) {
     // wait for client to connect
-    dprint("waiting for client\n");
+    DLOG_INFO("waiting for client");
     auto maybe_client = server.Accept();
     if (maybe_client.has_value()) {
       const auto [got_peer, peer_ip, peer_port] =
           maybe_client.value().GetPeer();
       if (got_peer == dnet::Result::kSuccess) {
-        dprint("new client from {}:{}\n", peer_ip, peer_port);
+        DLOG_INFO("new client from {}:{}", peer_ip, peer_port);
 
         // handle the client on a seperate thread
         std::thread t(Serve, std::move(maybe_client.value()));
         t.detach();
       } else {
-        dprint("failed to get peer with error [{}]\n",
+        DLOG_ERROR("failed to get peer with error [{}]",
                server.LastErrorToString());
       }
     } else {
-      dprint("failed to accept client with error [{}]\n",
+      DLOG_ERROR("failed to accept client with error [{}]",
              server.LastErrorToString());
     }
   }
@@ -138,7 +120,7 @@ int main(int argc, const char** argv) {
 
   if (port < std::numeric_limits<u16>::min() ||
       port > std::numeric_limits<u16>::max()) {
-    dprint("invalid port provided, must be in the range [{}-{}]\n",
+    DLOG_ERROR("invalid port provided, must be in the range [{}-{}]",
            std::numeric_limits<u16>::min(), std::numeric_limits<u16>::max());
     return 1;
   }
@@ -149,7 +131,7 @@ int main(int argc, const char** argv) {
 
   // windows will instantly close the terminal window, prevent that
 #ifdef DNET_PLATFORM_WINDOWS
-  fmt::print("enter any key to exit\n> ");
+  DLOG_RAW("enter any key to exit\n> ");
   char f;
   std::cin >> f;
 #endif

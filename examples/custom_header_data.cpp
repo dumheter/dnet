@@ -1,7 +1,7 @@
 #include <argparse.h>
-#include <fmt/format.h>
 #include <cstdlib>
-#include <dlog/dlog.hpp>
+#include <dlog.hpp>
+#include <dutil/types.hpp>
 #include <dnet/net/packet_header.hpp>
 #include <dnet/tcp_connection.hpp>
 #include <dnet/util/platform.hpp>
@@ -65,7 +65,7 @@ void DieOnFail(const dnet::Result res, CustomConnection& con) {
   if (res == dnet::Result::kFail) {
     DLOG_INFO("die_on_fail", "failed with error [{}]",
                 con.LastErrorToString());
-    std::cout << std::endl;  // flush
+    dlog::Flush();
     exit(0);
   }
 }
@@ -273,7 +273,7 @@ int main(int argc, const char** argv) {
   struct argparse_option options[] = {
       OPT_HELP(),
       OPT_GROUP("Settings"),
-      OPT_INTEGER('p', "port", &port, "port", NULL, NULL, 0),
+      OPT_INTEGER('p', "port", &port, "port", NULL, 0, 0),
       OPT_END(),
   };
 
@@ -307,7 +307,7 @@ int main(int argc, const char** argv) {
 
   // windows will instantly close the terminal window, prevent that
 #ifdef DNET_PLATFORM_WINDOWS
-  fmt::print("enter any key to exit\n> ");
+  DLOG_RAW("enter any key to exit\n> ");
   char f;
   std::cin >> f;
 #endif

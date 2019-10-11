@@ -1,5 +1,5 @@
 #include <doctest.h>
-#include <dlog/dlog.hpp>
+#include <dlog.hpp>
 #include <dnet/net/udp.hpp>
 #include <dnet/util/types.hpp>
 #include <dutil/stopwatch.hpp>
