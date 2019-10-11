@@ -115,6 +115,8 @@ TEST_CASE("udp basics") {
   std::thread server_thread{RunServer, port, std::ref(run_server),
                             std::ref(packets)};
   bool run_client = true;
+  // make sure server gets to start
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
   std::thread client_thread{RunClient, port, std::ref(run_client)};
 
   dutil::Stopwatch stopwatch{};

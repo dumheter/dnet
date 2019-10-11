@@ -66,8 +66,12 @@ class Udp {
    * @return Amount of read bytes, or nullopt on failure.
    */
   std::optional<int> Read(u8* buf_out, const size_t buflen) const {
-    return socket_.Read(buf_out, buflen);
-  };
+    const auto res = socket_.Read(buf_out, buflen);
+    if (res == CHIF_NET_RESULT_TCP_CONNECTION_CLOSED) {
+      return CHIF_NET_RESULT_SUCCESS;
+    }
+    return res;
+  }
 
   std::optional<int> ReadFrom(u8* buf_out, const size_t buflen,
                                   std::string& addr_out, u16& port_out) const {
@@ -79,7 +83,7 @@ class Udp {
    */
   std::optional<int> Write(const u8* buf, const size_t buflen) const {
     return socket_.Write(buf, buflen);
-  };
+  }
 
   std::optional<int> WriteTo(const u8* buf, const size_t buflen,
                                  const std::string& addr,
