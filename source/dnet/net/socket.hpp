@@ -116,6 +116,8 @@ class Socket {
 
   std::string LastErrorToString() const;
 
+  chif_net_result GetLastError() const { return last_error_; }
+
  private:
   chif_net_socket socket_;
   chif_net_transport_protocol proto_;

@@ -58,9 +58,11 @@ void Serve(EchoConnection client) {
         run = false;
       }
     } else {
-      DLOG_ERROR("[port:{}] failed to read with error [{}]", peer_port,
-             client.LastErrorToString());
       run = false;
+      if (res != dnet::Result::kConnectionClosed) {
+        DLOG_ERROR("[port:{}] failed to read with error [{}]", peer_port,
+                   client.LastErrorToString());
+      }
     }
   }
 }

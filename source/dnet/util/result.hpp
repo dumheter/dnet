@@ -30,7 +30,11 @@
 namespace dnet {
 
 using ResultUnderlyingType = u8_fast;
-enum class [[nodiscard]] Result : ResultUnderlyingType{kFail = 0, kSuccess};
+enum class [[nodiscard]] Result : ResultUnderlyingType {
+  kFail = 0,
+          kSuccess,
+          kConnectionClosed
+          };
 
 }  // namespace dnet
 

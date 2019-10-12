@@ -118,6 +118,8 @@ class Udp {
     return socket_.SetBlocking(blocking);
   }
 
+  chif_net_result GetLastError() const { return socket_.GetLastError(); }
+
  private:
   Socket socket_;
 };

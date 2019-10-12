@@ -192,6 +192,8 @@ std::tuple<Result, THeaderData> TcpConnection<TVector, THeaderData>::Read(
         transport_.Read(header.get(), Header::header_size());
     if (maybe_bytes.has_value()) {
       bytes += maybe_bytes.value();
+    } else if (transport_.GetLastError() == CHIF_NET_RESULT_TCP_CONNECTION_CLOSED) {
+      return std::make_tuple<Result, THeaderData>(Result::kConnectionClosed, THeaderData{});
     } else {
       return std::make_tuple<Result, THeaderData>(Result::kFail, THeaderData{});
     }
