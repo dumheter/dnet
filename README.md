@@ -17,7 +17,7 @@ server.StartServer(port);
 
 auto maybe_client = server.Accept();
 if (maybe_client.has_value()) {
-    auto client = std::move(maybe_client.value());
+    auto client = maybe_client.value();
 
     // read from client
     // use "structured binding" to capture variables from tuple
